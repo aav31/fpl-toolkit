@@ -1,0 +1,8 @@
+name: fpl
+channels:
+  - conda-forge
+dependencies:
+  - conda-forge::notebook=6.4.4
+  - conda-forge::pandas
+  - conda-forge::numpy
+  - conda-forge::requests
