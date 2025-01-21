@@ -6,3 +6,5 @@ dependencies:
   - conda-forge::pandas
   - conda-forge::numpy
   - conda-forge::requests
+  - pip:
+    - black[jupyter]
