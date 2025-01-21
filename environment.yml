@@ -1,4 +1,4 @@
-name: fpl
+name: fpl-toolkit
 channels:
   - conda-forge
 dependencies:
