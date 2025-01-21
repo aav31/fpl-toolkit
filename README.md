@@ -1,7 +1,42 @@
-# fpl
+# fpl-toolkit
 
-Run unit tests with this command:
-`python -m unittest discover -v`
+Jupyter Notebook tool enabling users to research, optimize, and manage their Fantasy Premier League teams.
 
-To run a specific test try something like:
-`python -m unittest tests.test_optimizer.TestOptimizer.test_optimize_team`
+## Features
+
+## Installation
+1. Clone the repository:
+   ```bash
+   git clone https://github.com/aav31/fpl-toolkit.git
+   cd fpl-toolkit
+   ```
+2. Create the conda environment:
+   ```bash
+   conda env create -f environment.yml
+   ```
+3. Activate the environment
+   ```bash
+   conda activate fpl-toolkit
+   ```
+
+This will install all the necessary libraries and tools required to run the project.
+
+## Usage
+Open the jupyter notebook with:
+```bash
+jupyter notebook
+```
+
+## License
+
+## Examples
+
+## Tests
+Run all unit tests:
+```bash
+python -m unittest discover -v
+```
+Run a specific unit test:
+```bash
+python -m unittest tests.test_optimizer.TestOptimizer.test_optimize_team
+```
