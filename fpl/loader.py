@@ -1,3 +1,21 @@
+"""
+loader.py
+~~~~~~~~~
+
+This module contains the `Loader` class which provides methods to fetch data from the Fantasy Premier League (FPL) API.
+
+For more information on different API endpoints a useful article is:
+    https://medium.com/@frenzelts/fantasy-premier-league-api-endpoints-a-detailed-guide-acbd5598eb19
+
+
+Classes:
+    Loader: A static class to get data from the FPL API with caching.
+
+Usage example:
+    from loader import Loader
+    static_info = Loader.get_static_info()
+"""
+
 import requests
 from typing import List, Dict, Any, Tuple, Set
 import pandas as pd
@@ -8,20 +26,20 @@ import time
 
 
 class Loader:
-    """
-    Static class allowing you to get data from the FPL API
-    Each method will maintain a cache of results returned so the API does not have to be queried multiple times
-    (this is why every method is decorated by @lru_cache so we don't have to hit the API loads of times)
+    """Static class to get data from the FPL API.
+    
+    Some methods maintain a cache of results to avoid querying the API multiple times.
     """
 
     @staticmethod
-    @lru_cache(maxsize=None)
+    @lru_cache(maxsize=1)
     def get_static_info() -> Dict[str, Any]:
-        """
-        Return the static information from FPL
-
-        :return: dictionary with key value pairs specified in
-        https://medium.com/@frenzelts/fantasy-premier-league-api-endpoints-a-detailed-guide-acbd5598eb19
+        """Return the static information from FPL.
+        The result is cached to avoid multiple API calls.
+        
+        :return: A dictionary containing the static information from the FPL API.
+        
+        :raises requests.exceptions.RequestException: If there is an error querying the API.
         """
         time.sleep(1)
         try:
@@ -37,11 +55,15 @@ class Loader:
         return result
 
     @staticmethod
-    @lru_cache(maxsize=None)
+    @lru_cache(maxsize=1)
     def get_fixtures() -> List[Dict]:
-        """
-        Return a list of fixtures from FPL where each fixture is identified by the field 'id'
-        :return: list of fixtures
+        """Return a list of fixtures from FPL.
+        The result is cached to avoid multiple API calls.
+        Each fixture is identified by the key "id".
+        
+        :return: List of fixtures
+        
+        :raises requests.exceptions.RequestException: If there is an error querying the API.
         """
         time.sleep(1)
         try:
@@ -55,14 +77,18 @@ class Loader:
         return result
 
     @staticmethod
-    @lru_cache(maxsize=None)
+    @lru_cache(maxsize=380)
     def get_fixture_info(fixture_id: int) -> Dict:
-        """
-        Return the information for a particular fixture
-
-        :param fixture_id: identifier of a particular fixture
-        :return: dictionary with key value pairs specified in
-        https://medium.com/@frenzelts/fantasy-premier-league-api-endpoints-a-detailed-guide-acbd5598eb19
+        """Return the information for a particular fixture.
+        Finds the info for a particular fixture by performing a linear search.
+        The result is cached to avoid performing a linear search multiple times.
+        There are at most 380 games so the cache cannot get too big.
+        
+        :param fixture_id: Identifier of a particular fixture.
+        
+        :return: Dictionary containing fixture info.
+        
+        :raises KeyError: If the fixture_id is not found or is ambiguous.
         """
         fixture_infos = []
         for fixture_info in Loader.get_fixtures():
@@ -82,15 +108,20 @@ class Loader:
         return fixture_infos[0]
 
     @staticmethod
-    @lru_cache(maxsize=None)
+    @lru_cache(maxsize=38)
     def get_fixtures_for_gameweek(gameweek: int) -> List[Dict]:
+        """Return the fixtures from FPL for a particular gameweek.
+        The result is cached to avoid multiple API calls.
+        
+        :param gameweek: Gameweek from 1 to 38.
+        
+        :return: List of fixtures for a particular gameweek.
+        
+        :raises KeyError: If the gameweek is not between 1 and 38 inclusive.
+        :raises requests.exceptions.RequestException: If there is an error querying the API.
         """
-        Return the fixtures from FPL for a particular gameweek
-
-        :param gameweek: gameweek
-        :return: dictionary with key value pairs specified in
-        https://medium.com/@frenzelts/fantasy-premier-league-api-endpoints-a-detailed-guide-acbd5598eb19
-        """
+        if not (1 <= gameweek <= 38):
+            raise KeyError("Gameweek {} is not between 1 and 38 inclusive".format(gameweek))
         try:
             response = requests.get(
                 "https://fantasy.premierleague.com/api/fixtures/?event={}".format(
@@ -106,30 +137,38 @@ class Loader:
         return result
 
     @staticmethod
-    @lru_cache(maxsize=None)
+    @lru_cache(maxsize=20)
     def get_team_basic_info(team_id: int) -> Dict:
-        """
-        Return the information for a particular team given their team id
-
-        :param team_id: team identifier
-        :return: dictionary giving information of a particular team
+        """Return the information for a particular team given their team id.
+        The result is cached to avoid performing a linear search multiple times.
+        
+        :param team_id: Team identifier.
+        
+        :return: Dictionary giving information of a particular team.
+        
+        :raises KeyError: If the team_id is not found.
         """
         for team_info in Loader.get_static_info()["teams"]:
             if team_info["id"] == team_id:
                 return team_info
+        raise KeyError("Team id {} not found in map".format(team_id))
 
     @staticmethod
-    @lru_cache(maxsize=None)
+    @lru_cache(maxsize=1)
     def get_my_team_from_api(
         login: str, password: str, manager_id: int
     ) -> Dict[str, Any]:
-        """
-        Get team information of current fpl team
-
-        :login: your username
-        :password: your password
-        :param manager_id: get this from log in -> inspect -> network... you should see an api request e.g. myteam/3247546
-        :return: dictionary in three sections picks, chips, transfers
+        """Get team information of current fpl team
+        To get manager id you need to log in -> inspect -> network,
+        you should see an api request e.g. myteam/3247546
+        
+        :param login: Username email address.
+        :param password: Your password.
+        :param manager_id: Manager id.
+        
+        :return: Dictionary with three sections picks, chips, transfers.
+        
+        :raises requests.exceptions.RequestException: If there is an error querying the API.
         """
 
         headers = {
@@ -162,24 +201,24 @@ class Loader:
 
     @staticmethod
     def get_my_team_from_local(local_filename: str) -> Dict[str, Any]:
-        """
-        Gets your team information from a local json file which can be downloaded from the fpl website
-
-        :param local_filename: the path to a file .json
-        :return: dictionary in three sections picks, chips, transfers
+        """Gets your team information from a local json file.
+        Local json file of team can be downloaded from the fpl website.
+        
+        :param local_filename: Path to a .json file.
+        
+        :return: Dictionary with three sections picks, chips, transfers.
         """
         with open(local_filename) as fd:
             d = json.load(fd)
         return d
 
     @staticmethod
-    @lru_cache(maxsize=None)
     def get_next_gameweek(as_of_ts: str = "now") -> int:
-        """
-        Get the id of the next gameweek as an integer as of a particular UTC timestamp
+        """Get the id of the next gameweek as an integer as of a particular UTC timestamp.
 
         :param as_of_ts: provide input as in https://pandas.pydata.org/docs/reference/api/pandas.Timestamp.html
-        :return: id of the next gameweek
+        
+        :return: Id of the next gameweek.
         """
         if as_of_ts == "now":
             as_of_ts = pd.Timestamp.now("UTC")
@@ -196,13 +235,21 @@ class Loader:
     def get_my_historical_team_from_gameweek(
         gameweek: int, manager_id: int
     ) -> Dict[str, Any]:
+        """Returns the historical team a manager used for a particular gameweek.
+        To get manager id you need to log in -> inspect -> network,
+        you should see an api request e.g. myteam/3247546
+        
+        :param gameweek: Historical gameweek number.
+        :param manager_id: Manager id.
+        
+        :return: Dictionary where one of the elements is picks - these are the players you chose that gameweek.
+        
+        :raises TypeError: If the gameweek is not an integer.
+        :raises ValueError: If the gameweek is not in the valid range.
+        :raises requests.exceptions.RequestException: If there is an error querying the API.
         """
-        Returns the historical team you used for a particular gameweek
-
-        :param gameweek: historical gameweek number
-        :param manager_id: get this from log in -> inspect -> network... you should see an api request e.g. myteam/3247546
-        :return: dictionary where one of the elements is picks - these are the players you chose that gameweek
-        """
+        warnings.warn("get_my_historical_team_from_gameweek is deprecated.", DeprecationWarning)
+        
         if not isinstance(gameweek, int):
             raise TypeError("Gameweek should be an integer")
         if not (0 < gameweek < Loader.get_next_gameweek()):
@@ -220,13 +267,16 @@ class Loader:
         return response.json()
 
     @staticmethod
-    @lru_cache(maxsize=None)
+    @lru_cache(maxsize=100)
     def get_player_basic_info(player_id: int) -> Dict[str, Any]:
-        """
-        Get the basic information of a player so far this season and based on the most recent gameweek
-
-        :param player_id: player identifier
-        :return: dictionary of player information
+        """Get the basic information of a player so far this season and based on the most recent gameweek.
+        The result is cached to avoid performing a linear search multiple times.
+        
+        :param player_id: Player identifier.
+        
+        :return: Dictionary containing player information.
+        
+        :raises KeyError: If player_id is not found.
         """
         for player_info in Loader.get_static_info()["elements"]:
             if player_info["id"] == player_id:
@@ -235,16 +285,19 @@ class Loader:
         raise KeyError("Player id {} not found in map".format(player_id))
 
     @staticmethod
-    @lru_cache(maxsize=None)
+    @lru_cache(maxsize=100)
     def get_player_detailed_info(player_id: int) -> Dict[str, List[Dict]]:
-        """
-        Returns a player’s detailed information divided into 3 sections - fixtures, history, history_past
-
+        """Returns a player’s detailed information.
+        Information is divided into 3 sections - fixtures, history, history_past.
+        fixtures - A list of player’s remaining fixtures of the season.
+        history - A list of player’s previous fixtures and its match stats.
+        history_past - A list of player’s previous seasons and its seasonal stats.
+        
         :param player_id: player id
-        :return: player’s detailed information divided into 3 sections - fixtures, history, history_past
-                fixtures - A list of player’s remaining fixtures of the season
-                history - A list of player’s previous fixtures and its match stats
-                history_past - A list of player’s previous seasons and its seasonal stats
+        
+        :return: Dictionary containing player detailed information.
+        
+        :raises requests.exceptions.RequestException: If there is an error querying the API.
         """
         try:
             response = requests.get(
@@ -261,12 +314,13 @@ class Loader:
     def get_player_historical_info_for_gameweek(
         player_id: int, gameweek: int
     ) -> List[Dict]:
-        """
-        Return a player's information for a particular gameweek where the information is known
-
-        :param player_id:
-        :param gameweek:
-        :return: list of fixtures containing the player's stats - may be more than one if double gameweek and 0 if blank
+        """Return a player's information for a particular gameweek where the information is known.
+        The list may be more than one if double gameweek and zero if blank.
+        
+        :param player_id: Player id.
+        :param gameweek: Gameweek between 1 and 38 inclusive.
+        
+        :return: List of fixtures containing the player's stats.
         """
         player_history = Loader.get_player_detailed_info(player_id)["history"]
         result = []
@@ -280,12 +334,13 @@ class Loader:
     def get_player_future_info_for_gameweek(
         player_id: int, gameweek: int
     ) -> List[Dict]:
-        """
-        Return a player's information for a particular gameweek where the information is unknown
-
-        :param player_id:
-        :param gameweek:
-        :return: list of fixtures containing the player's stats - may be more than one if double gameweek and 0 if blank
+        """Return a player's information for a particular gameweek where the information is unknown.
+        The list may be more than one if double gameweek and zero if blank.
+        
+        :param player_id: Player id.
+        :param gameweek: Gameweek between 1 and 38 inclusive.
+        
+        :return: List of fixtures containing the player's stats.
         """
         player_history = Loader.get_player_detailed_info(player_id)["fixtures"]
         result = []
@@ -297,10 +352,14 @@ class Loader:
 
     @staticmethod
     def get_position_info(position_id: int) -> Dict[str, Any]:
-        """
-        Get the information about a particular position
-        :param position_id: What type of position 1 = gkp, 2 = def, 3 = mid, 4 = fwd
-        :return: information about a particular position
+        """Get the information regarding a particular position.
+        For example minimum numbers that need to play in defence, midfield and attack.
+        
+        :param position_id: Position identifier 1 = gkp, 2 = def, 3 = mid, 4 = fwd.
+        
+        :return: Dictionary with information about a particular position.
+        
+        :raises KeyError: If position_id is not found.
         """
         for position in Loader.get_static_info()["element_types"]:
             if position["id"] == position_id:
