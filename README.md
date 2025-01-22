@@ -1,4 +1,4 @@
-# fpl-toolkit
+# fpl-toolkit ⚽
 
 Jupyter Notebook tool enabling users to research, optimize, and manage their Fantasy Premier League teams.
 
@@ -40,6 +40,8 @@ The main workhorse of the tool is the `fpl` package.
 ## License
 
 This project is licensed under the MIT License. See the [LICENSE](LICENSE) file for more details.
+
+![MIT License](https://img.shields.io/badge/License-MIT-yellow.svg)
 
 ## Examples
 
