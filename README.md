@@ -3,11 +3,12 @@
 Jupyter Notebook tool enabling users to research, optimize, and manage their Fantasy Premier League teams.
 
 ## Features
-The tool allows you to:
-- Easily extract data for each player and their clubs from the official FPL API allowing you to perform your own research
-  (shots on target, minutes per game, yellow cards, upcoming fixtures, fixture difficulty rating etc.)
-- Download the information for your own FPL team
-- Optimize your own FPL team based on a customizable expected points calculator
+
+- 📊 **Extract Data & Insights**: Easily extract data for each player and their clubs from the official FPL API, and gain valuable insights for your research.
+- ⬇️ **Download Team Info**: Download the information for your own FPL team.
+- 📈 **Optimize Team**: Optimize your own FPL team based on a customizable expected points calculator.
+
+
 
 ## Installation
 1. Clone the repository:
