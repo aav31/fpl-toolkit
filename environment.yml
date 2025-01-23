@@ -2,9 +2,13 @@ name: fpl-toolkit
 channels:
   - conda-forge
 dependencies:
+  - conda-forge::python=3.9.21
   - conda-forge::notebook=6.4.4
   - conda-forge::pandas
   - conda-forge::numpy
+  - conda-forge::matplotlib
   - conda-forge::requests
+  - conda-forge::fuzzywuzzy
+  - conda-forge::pip
   - pip:
     - black[jupyter]

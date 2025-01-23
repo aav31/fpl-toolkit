@@ -2,18 +2,27 @@
 loader.py
 ~~~~~~~~~
 
-This module contains the `Loader` class which provides methods to fetch data from the Fantasy Premier League (FPL) API.
+This module contains the `Loader` static class which provides methods to fetch data from the Fantasy Premier League (FPL) API.
 
 For more information on different API endpoints a useful article is:
     https://medium.com/@frenzelts/fantasy-premier-league-api-endpoints-a-detailed-guide-acbd5598eb19
 
-
-Classes:
-    Loader: A static class to get data from the FPL API with caching.
-
-Usage example:
-    from loader import Loader
-    static_info = Loader.get_static_info()
+Available functions:
+- get_static_info: Return the static information from the FPL API.
+- get_fixtures: Return a list of fixtures from the FPL API.
+- get_fixture_info: Return the information for a particular fixture.
+- get_fixtures_for_gameweek: Return the fixtures from FPL for a particular gameweek.
+- get_team_basic_info: Return the information for a particular team given their team id.
+- get_my_team_from_api: Get team information of current fpl team.
+- get_my_team_from_local: Gets your team information from a local json file.
+- get_next_gameweek: Get the id of the next gameweek as an integer as of a particular UTC timestamp.
+- get_my_historical_team_from_gameweek: Returns the historical team a manager used for a particular gameweek.
+- get_player_basic_info: Get the basic information of a player so far this season and based on the most recent gameweek.
+- get_player_detailed_info: Returns a player’s detailed information.
+- get_player_historical_info_for_gameweek: Return a player's information for a particular gameweek where the information is known.
+- get_player_future_info_for_gameweek: Return a player's information for a particular gameweek where the information is unknown.
+- get_position_info: Get the information regarding a particular position.
+- find_matching_players: Search for players whose web names partially match the search_name using fuzzy matching.
 """
 
 import requests
@@ -23,6 +32,9 @@ from functools import lru_cache
 import warnings
 import json
 import time
+from fuzzywuzzy import fuzz
+from fuzzywuzzy import process
+from fpl.player import Player
 
 
 class Loader:
@@ -34,7 +46,7 @@ class Loader:
     @staticmethod
     @lru_cache(maxsize=1)
     def get_static_info() -> Dict[str, Any]:
-        """Return the static information from FPL.
+        """Return the static information from the FPL API.
         The result is cached to avoid multiple API calls.
 
         :return: A dictionary containing the static information from the FPL API.
@@ -57,7 +69,7 @@ class Loader:
     @staticmethod
     @lru_cache(maxsize=1)
     def get_fixtures() -> List[Dict]:
-        """Return a list of fixtures from FPL.
+        """Return a list of fixtures from the FPL API.
         The result is cached to avoid multiple API calls.
         Each fixture is identified by the key "id".
 
@@ -160,7 +172,7 @@ class Loader:
     def get_my_team_from_api(
         login: str, password: str, manager_id: int
     ) -> Dict[str, Any]:
-        """Get team information of current fpl team
+        """Get team information of current fpl team.
         To get manager id you need to log in -> inspect -> network,
         you should see an api request e.g. myteam/3247546
 
@@ -370,3 +382,39 @@ class Loader:
                 return position
 
         raise KeyError("Position id {} not found in map".format(position_id))
+        
+    @staticmethod
+    def find_matching_players(search_name: str, threshold: int = 80) -> List[Tuple[Player, str]]:
+        """Search for players whose web names partially match the search_name using fuzzy matching.
+
+        :param search_name: The name to search for.
+        :param threshold: The minimum score for a match to be considered valid (default is 80).
+
+        :return: A list of tuples, each containing a Player object and the full name as a string.
+
+        :raises ValueError: If no matching players are found.
+        """
+        elements = Loader.get_static_info()["elements"]
+        web_names = [p["web_name"] for p in elements]
+        matches = process.extract(search_name, web_names, scorer=fuzz.partial_ratio)
+        filtered_matches = [match for match in matches if match[1] >= threshold]
+        matched_ids = [p["id"] for p in elements if p["web_name"] in [match[0] for match in filtered_matches]]
+
+        if not matched_ids:
+            raise ValueError("No matching players found.")
+
+        players = []
+        for i in matched_ids:
+            basic_info = Loader.get_player_basic_info(i)
+            player = Player(
+                element=i,
+                name=basic_info["web_name"],
+                position=basic_info["element_type"],
+                club=basic_info["team"],
+                cost=basic_info["now_cost"]
+            )
+            full_name = f"{basic_info['first_name']} {basic_info['second_name']}"
+            players.append((player, full_name))
+
+        return players
+

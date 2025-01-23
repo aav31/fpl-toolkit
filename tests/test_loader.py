@@ -1,6 +1,6 @@
 import unittest
-from fpl import Loader
-
+from fpl import Loader, Player
+from unittest.mock import patch
 
 class TestLoader(unittest.TestCase):
     def test_get_static_info(self):
@@ -140,3 +140,82 @@ class TestLoader(unittest.TestCase):
         self.assertEqual(Loader.get_position_info(2)["singular_name_short"], "DEF")
         self.assertEqual(Loader.get_position_info(3)["singular_name_short"], "MID")
         self.assertEqual(Loader.get_position_info(4)["singular_name_short"], "FWD")
+        
+    def setUp(self):
+        self.mock_elements = [
+            {"id": 1, "web_name": "John Doe"},
+            {"id": 2, "web_name": "Jane Smith"},
+            {"id": 3, "web_name": "Johnny Appleseed"}
+        ]
+        self.mock_player_info = {
+            1: {
+                "web_name": "John Doe",
+                "element_type": "Midfielder",
+                "team": "Team A",
+                "now_cost": 100,
+                "first_name": "John",
+                "second_name": "Doe"
+            },
+            2: {
+                "web_name": "Jane Smith",
+                "element_type": "Defender",
+                "team": "Team B",
+                "now_cost": 90,
+                "first_name": "Jane",
+                "second_name": "Smith"
+            },
+            3: {
+                "web_name": "Johnny Appleseed",
+                "element_type": "Forward",
+                "team": "Team C",
+                "now_cost": 110,
+                "first_name": "Johnny",
+                "second_name": "Appleseed"
+            }
+        }
+
+    @patch('fpl.loader.Loader.get_static_info')
+    @patch('fpl.loader.Loader.get_player_basic_info')
+    def test_find_matching_players(self, mock_get_player_basic_info, mock_get_static_info):
+        # Set up mock return values
+        mock_get_static_info.return_value = {"elements": self.mock_elements}
+        mock_get_player_basic_info.side_effect = lambda i: self.mock_player_info[i]
+
+        # Test case
+        search_name = "John"
+        threshold = 80
+        result = Loader.find_matching_players(search_name, threshold)
+
+        # Expected result
+        expected_players = [
+            Player(
+                element=1,
+                name="John Doe",
+                position="Midfielder",
+                club="Team A",
+                cost=100
+            ),
+            Player(
+                element=3,
+                name="Johnny Appleseed",
+                position="Forward",
+                club="Team C",
+                cost=110
+            )
+        ]
+        expected_full_names = ["John Doe", "Johnny Appleseed"]
+        expected_result = list(zip(expected_players, expected_full_names))
+
+        self.assertEqual(result, expected_result)
+
+    @patch('fpl.loader.Loader.get_static_info')
+    def test_find_matching_players_no_match(self, mock_get_static_info):
+        # Set up mock return values
+        mock_get_static_info.return_value = {"elements": self.mock_elements}
+
+        # Test case
+        search_name = "Alice"
+        threshold = 80
+
+        with self.assertRaises(ValueError):
+            Loader.find_matching_players(search_name, threshold)
