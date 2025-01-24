@@ -1,11 +1,7 @@
 """
-loader.py
-~~~~~~~~~
-
-This module contains the `Loader` static class which provides methods to fetch data from the Fantasy Premier League (FPL) API.
-
+This module defines the Loader class, which provides methods to fetch data from the FPL API.
 For more information on different API endpoints a useful article is:
-    https://medium.com/@frenzelts/fantasy-premier-league-api-endpoints-a-detailed-guide-acbd5598eb19
+https://medium.com/@frenzelts/fantasy-premier-league-api-endpoints-a-detailed-guide-acbd5598eb19
 
 Available functions:
 - get_static_info: Return the static information from the FPL API.
@@ -39,7 +35,6 @@ from fpl.player import Player
 
 class Loader:
     """Static class to get data from the FPL API.
-
     Some methods maintain a cache of results to avoid querying the API multiple times.
     """
 

@@ -1,20 +1,32 @@
+"""
+This module defines the Optimizer class, which provides methods to optimize FPL teams.
+The Optimizer class includes methods to calculate the optimal formation, discounted reward, and top three optimized teams.
+
+Available functions:
+- optimal_formation: Return the optimal formation of an FPL team for a particular gameweek.
+- discounted_reward: Calculate the discounted reward you can expect from your team over a particular horizon.
+- optimize_team: Find the top three optimized teams based on the given parameters.
+"""
+
 from fpl import Player, Team, ExpectedPointsCalculator, Loader
 from typing import Dict, Any, Type, List
 import heapq
 
 
 class Optimizer:
+    """Static class providing methods to optimize an FPL team.
+    """
     @staticmethod
     def optimal_formation(
         team: Team, epc: Type[ExpectedPointsCalculator], gameweek: int
     ) -> Dict[str, Any]:
-        """
-        Return optimal formation of an fpl team for a particular gameweek
-        :param team:
-        :param epc: expected points calculator
-        :param gameweek: gameweek for which you want to optimal formation calculated for
+        """Return the optimal formation of an FPL team for a particular gameweek.
 
-        :return: Dictionary containing gkps, defs, mids, fwds, captain, expected points
+        :param team: The team for which the optimal formation is to be calculated.
+        :param epc: Expected points calculator.
+        :param gameweek: The gameweek for which the optimal formation is to be calculated.
+
+        :return: Dictionary containing gkps, defs, mids, fwds, captain, expected points.
         """
 
         def pop_n_elements(lst, n):
@@ -132,15 +144,16 @@ class Optimizer:
         gamma: float = 1,
         wildcard: bool = False,
     ) -> float:
-        """The discounted reward you can expect from your team over a particular horizon
-        :param team:
-        :param epc: expected points calculator
-        :param gameweek: gameweek for which you want to start accumulating the reward
-        :param horizon: how many gameweeks you want to accumulate the reward
-        :param gamma: discount factor
-        :param wildcard: if you are wildcarding or not, this is a switch to turn off the transfer adjustment
+        """Calculate the discounted reward you can expect from your team over a particular horizon.
 
-        :return: discounted reward of your team over a particular horizon including a transfer adjustment
+        :param team: The team for which the reward is to be calculated.
+        :param epc: Expected points calculator.
+        :param gameweek: The gameweek from which to start accumulating the reward.
+        :param horizon: The number of gameweeks over which to accumulate the reward.
+        :param gamma: Discount factor.
+        :param wildcard: Whether you are wildcarding or not, this is a switch to turn off the transfer adjustment.
+
+        :return: Discounted reward of your team over a particular horizon, including a transfer adjustment.
         """
         # draw a graph - each free transfer is roughly worth 0.8 points
         transfer_adjustment = 0
@@ -175,14 +188,18 @@ class Optimizer:
         gamma: float = 1,
         wildcard: bool = False,
     ) -> List[Team]:
-        """
-        Find top three teams
+        """Find the top three optimized teams.
 
-        :param team: team you wish to optimize
-        :param candidates: list of player candidates you wish to transfer in
-        :param max_transfers: maximum number of transfers you wish to take on
+        :param team: The team you wish to optimize.
+        :param candidates: List of player candidates you wish to transfer in.
+        :param epc: Expected points calculator.
+        :param gameweek: The gameweek for which you want to start optimizing.
+        :param horizon: The number of gameweeks over which to optimize.
+        :param max_transfers: Maximum number of transfers you wish to take on.
+        :param gamma: Discount factor.
+        :param wildcard: Whether you are wildcarding or not.
 
-        :return: list of top three teams based on score
+        :return: List of the top three teams based on score.
         """
         top_three = [
             (

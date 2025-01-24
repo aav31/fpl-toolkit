@@ -1,3 +1,17 @@
+"""
+This module defines the Team class, which represents a Fantasy Premier League (FPL) team.
+The Team class includes attributes such as the team's money in the bank, free transfers, and sets of players in different positions.
+It also provides methods for comparing teams, checking team feasibility, and transferring players.
+
+Available functions:
+- __post_init__: Validates the types of the attributes after the object is initialized.
+- __eq__: Checks if two teams are equal based on their attributes.
+- __lt__: Compares two teams based on their money in the bank and free transfers.
+- __str__: Returns a string representation of the team.
+- is_feasible: Checks if the team is feasible based on FPL rules.
+- transfer_player: Transfers a player in and out of the team and returns a new team instance.
+"""
+
 from collections import defaultdict
 from fpl import Player
 from typing import FrozenSet
@@ -16,6 +30,10 @@ class Team:
     fwds: FrozenSet[Player]
 
     def __post_init__(self):
+        """Validate the types of the attributes after the object is initialized.
+        
+        :raises TypeError: If any of the attributes are not of the expected type.
+        """
         if not isinstance(self.money_in_bank, int):
             raise TypeError("money_in_bank must be an integer")
         if not isinstance(self.free_transfers, int):
@@ -38,8 +56,12 @@ class Team:
             raise TypeError("fwds must be a FrozenSet of Player instances")
 
     def __eq__(self, other: "Team") -> bool:
-        """
-        Teams are equal when their sets of players, money in bank, free transfers are equal
+        """Check if two teams are equal based on their sets of players, money in bank, and free transfers.
+        Teams are equal when their sets of players, money in bank, free transfers are equal.
+        
+        :param other: Another Team instance to compare with.
+
+        :return: True if the teams have the same sets of players, money in bank, and free transfers, False otherwise.
         """
         if self.gkps != other.gkps:
             return False
@@ -54,9 +76,14 @@ class Team:
         )
 
     def __lt__(self, other: "Team") -> bool:
-        """
-        One team is worse than the the other when its money in the bank is less than the other
-        If the money in the bank is equal, then it goes to free transfers
+        """Compare two teams based on their money in the bank and free transfers.
+        One team is worse than the the other when its money in the bank is less than the other.
+        If the money in the bank is equal, then it goes to free transfers.
+        
+        :param other: Another Team instance to compare with.
+
+        :return: True if this team's money in the bank is less than the other team's, or if they are equal, 
+                 if this team's free transfers are less than the other team's, False otherwise.
         """
         return (self.money_in_bank, self.free_transfers) < (
             other.money_in_bank,
@@ -64,6 +91,10 @@ class Team:
         )
 
     def __str__(self):
+        """Return a string representation of the team.
+
+        :return: A string representation of the team, including players in each position, money in bank, and free transfers.
+        """
         result = ""
         position_delimiter = "-" * 75 + "\n"
 
@@ -94,10 +125,10 @@ class Team:
 
     @property
     def is_feasible(self) -> bool:
-        """
-        Return whether an FPL team is feasible or not
-        :return: bool indicating whether enough money, players in one club < 3,
-        correct number players in each position
+        """Return whether an FPL team is feasible or not.
+
+        :return: bool indicating whether the team has enough money, players in one club < 3, 
+                 and the correct number of players in each position.
         """
         if self.money_in_bank < 0:
             return False
@@ -126,11 +157,14 @@ class Team:
         return True
 
     def transfer_player(self, out_player: Player, in_player: Player) -> "Team":
-        """
-        Makes a single transfer giving a new team
-        :param out_player: player to be transfered out
-        :param in_player: player to be transfered in
-        :return: copy of team which contains updated squad, money in bank and free transfers
+        """Make a single transfer, giving a new team.
+
+        :param out_player: Player to be transferred out.
+        :param in_player: Player to be transferred in.
+
+        :return: A copy of the team with the updated squad, money in bank, and free transfers.
+
+        :raises ValueError: If the positions of the players being transferred do not match.
         """
         if out_player.position != in_player.position:
             raise ValueError("Both players must have the same position for a transfer.")
