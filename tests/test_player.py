@@ -3,17 +3,19 @@ from fpl import Player
         
         
 class TestPlayer(unittest.TestCase):
+    """Unit tests for the player module.
+    """
     def test_eq(self):
         player1 = Player(element=1, name="Player1", position=3, club=1, cost=50)
         player2 = Player(element=1, name="Player1", position=3, club=1, cost=40)
         player3 = Player(element=2, name="Player1", position=3, club=1, cost=50)
-        self.assertEqual(player1, player2)
-        self.assertNotEqual(player1, player3)
+        self.assertEqual(player1, player2, "players are the same because their ids are the same")
+        self.assertNotEqual(player1, player3, "")
 
     def test_lt(self):
         player1 = Player(element=1, name="Player1", position=3, club=1, cost=1000)
         player2 = Player(element=2, name="Player2", position=3, club=1, cost=90)
-        self.assertLess(player1, player2) # less than in this case means in terms of id
+        self.assertLess(player1, player2, "Player1 is less than Player2 because he has a lower id")
         self.assertGreater(player2, player1)
 
     def test_from_min_info(self):
