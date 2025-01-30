@@ -13,11 +13,10 @@ Available functions:
 """
 
 from collections import defaultdict
-from fpl import Player
 from typing import FrozenSet
 from dataclasses import dataclass, replace
 from functools import total_ordering
-
+from fpl.player import Player
 
 @total_ordering
 @dataclass(frozen=True)

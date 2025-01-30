@@ -30,8 +30,8 @@ import json
 import time
 from fuzzywuzzy import fuzz
 from fuzzywuzzy import process
+from fpl.team import Team
 from fpl.player import Player
-
 
 class Loader:
     """Static class to get data from the FPL API.
@@ -166,7 +166,7 @@ class Loader:
     @lru_cache(maxsize=1)
     def get_my_team_from_api(
         login: str, password: str, manager_id: int
-    ) -> Dict[str, Any]:
+    ) -> Team:
         """Get team information of current fpl team.
         To get manager id you need to log in -> inspect -> network,
         you should see an api request e.g. myteam/3247546
@@ -175,7 +175,7 @@ class Loader:
         :param password: Your password.
         :param manager_id: Manager id.
 
-        :return: Dictionary with three sections picks, chips, transfers.
+        :return: Team object
 
         :raises requests.exceptions.RequestException: If there is an error querying the API.
         """
@@ -199,27 +199,61 @@ class Loader:
             session = requests.session()
             res = session.post(url, data=data, headers=headers)
             res = session.get(team_url)
-            team = json.loads(res.content)
+            d = json.loads(res.content) # Dictionary with three sections picks, chips, transfers
             res.raise_for_status()
         except requests.exceptions.RequestException:
             raise requests.exceptions.RequestException("Error querying API")
         finally:
             session.close()
-
+            
+        
+        picks = d["picks"]
+        gkps, defs, mids, fwds = set(), set(), set(), set()
+        for pick in picks:
+            player = Player(element=pick["element"], name=Loader.get_player_basic_info(pick["element"])["web_name"], position=Loader.get_player_basic_info(pick["element"])["element_type"], club=Loader.get_player_basic_info(pick["element"])["team"], cost=pick["selling_price"])
+            if player.position == 1:
+                gkps.add(player)
+            if player.position == 2:
+                defs.add(player)
+            if player.position == 3:
+                mids.add(player)
+            if player.position == 4:
+                fwds.add(player)
+        
+        money_in_bank = d["transfers"]["bank"]
+        free_transfers = 0 if d["transfers"]["limit"] is None else d["transfers"]["limit"]
+        team = Team(money_in_bank,free_transfers,frozenset(gkps),frozenset(defs),frozenset(mids),frozenset(fwds))
         return team
 
     @staticmethod
-    def get_my_team_from_local(local_filename: str) -> Dict[str, Any]:
+    def get_my_team_from_local(local_filename: str) -> Team:
         """Gets your team information from a local json file.
         Local json file of team can be downloaded from the fpl website.
-
+        
         :param local_filename: Path to a .json file.
 
-        :return: Dictionary with three sections picks, chips, transfers.
+        :return: Team object
         """
         with open(local_filename) as fd:
-            d = json.load(fd)
-        return d
+            d = json.load(fd) # Dictionary with three sections picks, chips, transfers
+            
+        picks = d["picks"]
+        gkps, defs, mids, fwds = set(), set(), set(), set()
+        for pick in picks:
+            player = Player(element=pick["element"], name=Loader.get_player_basic_info(pick["element"])["web_name"], position=Loader.get_player_basic_info(pick["element"])["element_type"], club=Loader.get_player_basic_info(pick["element"])["team"], cost=pick["selling_price"])
+            if player.position == 1:
+                gkps.add(player)
+            if player.position == 2:
+                defs.add(player)
+            if player.position == 3:
+                mids.add(player)
+            if player.position == 4:
+                fwds.add(player)
+        
+        money_in_bank = d["transfers"]["bank"]
+        free_transfers = 0 if d["transfers"]["limit"] is None else d["transfers"]["limit"]
+        team = Team(money_in_bank,free_transfers,frozenset(gkps),frozenset(defs),frozenset(mids),frozenset(fwds))
+        return team
 
     @staticmethod
     def get_next_gameweek(as_of_ts: str = "now") -> int:

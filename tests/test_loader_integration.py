@@ -1,5 +1,5 @@
 import unittest
-from fpl import Loader, Player
+from fpl import Loader, Team, Player
 from unittest.mock import patch
 
 class TestLoaderIntegration(unittest.TestCase):
@@ -73,9 +73,11 @@ class TestLoaderIntegration(unittest.TestCase):
         pass
 
     def test_get_my_team_from_local(self):
-        my_team = Loader.get_my_team_from_local("./tests/my_team.json")
-        self.assertEqual(len(my_team["picks"]), 15)
-        self.assertEqual(my_team["transfers"]["limit"], 1)
+        my_team = Loader.get_my_team_from_local("./resources/my_team.json")
+        self.assertEqual(len(my_team.gkps), 2)
+        self.assertEqual(len(my_team.defs), 5)
+        self.assertEqual(len(my_team.mids), 5)
+        self.assertEqual(len(my_team.fwds), 3)
 
     def test_get_next_gameweek(self):
         self.assertEqual(
