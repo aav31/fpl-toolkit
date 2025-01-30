@@ -341,8 +341,8 @@ class TestOptimizerDiscountedReward(unittest.TestCase):
             horizon=3,
         )
         expected = (
-            12 * (10 + 20 + 30) - 0.8
-        )  # 12 players including captain for each gameweek minus penalty
+            12 * (10 + 20 + 30) - 0.8*3
+        )  # 12 players including captain for each gameweek minus penalty applied every week
         self.assertAlmostEqual(actual, expected, msg="Penalty applied")
 
     def test_transfer_adjustment_with_two_free_transfers(self):
@@ -360,7 +360,7 @@ class TestOptimizerDiscountedReward(unittest.TestCase):
             horizon=3,
         )
         expected = (
-            12 * (10 + 20 + 30) - 1.6
+            12 * (10 + 20 + 30) - 1.6*3
         )  # 12 players including captain for each gameweek minus penalty
         self.assertAlmostEqual(actual, expected, msg="Penalty applied")
 
@@ -379,7 +379,7 @@ class TestOptimizerDiscountedReward(unittest.TestCase):
             horizon=3,
         )
         expected = (
-            12 * (10 + 20 + 30) - 3.2
+            12 * (10 + 20 + 30) - 3.2*3
         )  # 12 players including captain for each gameweek minus penalty
         self.assertAlmostEqual(actual, expected, msg="Penalty applied")
 
@@ -397,7 +397,7 @@ class TestOptimizerDiscountedReward(unittest.TestCase):
             gameweek=1,
             horizon=3,
         )
-        expected = 12 * (10 + 20 + 30) - 4
+        expected = 12 * (10 + 20 + 30) - 4*3
         self.assertAlmostEqual(actual, expected, msg="Penalty applied")
 
     def test_horizon(self):
@@ -436,6 +436,10 @@ class TestOptimizerDiscountedReward(unittest.TestCase):
         expected_points_for_week_2 = 12 * 20
         expected = expected_points_for_week_1 + 0.5 * expected_points_for_week_2
         self.assertAlmostEqual(actual, expected)
+        
+    @unittest.skip("TODO: Implement this test")
+    def test_wildcard(self):
+        pass
 
 
 class TestOptimizerOptimizeTeam(unittest.TestCase):
@@ -689,12 +693,12 @@ class TestOptimizerOptimizeTeam(unittest.TestCase):
         self.assertEqual(len(top_three), 3)
 
         third_best_score, third_best_team = heapq.heappop(top_three)
-        self.assertEqual(third_best_score, 20 + 20 - 2.4)
+        self.assertEqual(third_best_score, 20 + 20 - 2.4*2)
         self.assertEqual(third_best_team.money_in_bank, 0)
         self.assertEqual(third_best_team.free_transfers, 1)
 
         second_best_score, second_best_team = heapq.heappop(top_three)
-        self.assertEqual(second_best_score, 20 + 20 + 4 - 3.2)
+        self.assertEqual(second_best_score, 20 + 20 + 4 - 3.2*2)
         self.assertEqual(
             second_best_team.money_in_bank,
             5,
@@ -707,7 +711,7 @@ class TestOptimizerOptimizeTeam(unittest.TestCase):
         )
 
         first_best_score, first_best_team = heapq.heappop(top_three)
-        self.assertEqual(first_best_score, 20 + 20 + 4 - 3.2)
+        self.assertEqual(first_best_score, 20 + 20 + 4 - 3.2*2)
         self.assertEqual(
             first_best_team.money_in_bank,
             10,

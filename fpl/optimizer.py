@@ -9,7 +9,6 @@ Available functions:
 """
 
 from fpl import Player, Team, ExpectedPointsCalculator, Loader
-from typing import Dict, Any, Type, List
 import heapq
 
 
@@ -18,8 +17,8 @@ class Optimizer:
     """
     @staticmethod
     def optimal_formation(
-        team: Team, epc: Type[ExpectedPointsCalculator], gameweek: int
-    ) -> Dict[str, Any]:
+        team: Team, epc: ExpectedPointsCalculator, gameweek: int
+    ) -> dict[str, any]:
         """Return the optimal formation of an FPL team for a particular gameweek.
 
         :param team: The team for which the optimal formation is to be calculated.
@@ -138,7 +137,7 @@ class Optimizer:
     @staticmethod
     def discounted_reward(
         team: Team,
-        epc: Type[ExpectedPointsCalculator],
+        epc: ExpectedPointsCalculator,
         gameweek: int,
         horizon: int,
         gamma: float = 1,
@@ -172,22 +171,24 @@ class Optimizer:
         discount_factor = 1
         for h in range(horizon):
             d = Optimizer.optimal_formation(team, epc, gameweek + h)
-            discounted_reward += discount_factor * d["total_exp_points"]
+            # transfer adjustment should be applied every week
+            # having one less transfer this week -> on average you'll have one less next week
+            discounted_reward += discount_factor * (d["total_exp_points"] + transfer_adjustment)
             discount_factor *= gamma
 
-        return discounted_reward + transfer_adjustment
+        return discounted_reward
 
     @staticmethod
     def optimize_team(
         team: Team,
-        candidates: List[Player],
-        epc: Type[ExpectedPointsCalculator],
+        candidates: list[Player],
+        epc: ExpectedPointsCalculator,
         gameweek: int,
         horizon: int,
         max_transfers: int,
         gamma: float = 1,
         wildcard: bool = False,
-    ) -> List[Team]:
+    ) -> list[Team]:
         """Find the top three optimized teams.
 
         :param team: The team you wish to optimize.
@@ -200,6 +201,8 @@ class Optimizer:
         :param wildcard: Whether you are wildcarding or not.
 
         :return: List of the top three teams based on score.
+        
+        :raises ValueError: If one of the candidates has an invalid position.
         """
         top_three = [
             (
