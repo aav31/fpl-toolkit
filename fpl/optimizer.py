@@ -202,8 +202,17 @@ class Optimizer:
 
         :return: List of the top three teams based on score.
         
-        :raises ValueError: If one of the candidates has an invalid position.
+        :raises ValueError: If one of the candidates is already in the team or has an invalid position.
         """
+        
+        team_player_ids = set([p.element for p in team.gkps|team.defs|team.mids|team.fwds])
+        valid_positions = set([1, 2, 3, 4])
+        for candidate in candidates:
+            if candidate.element in team_player_ids:
+                raise ValueError("Candidate already in team.")
+            if candidate.position not in valid_positions:
+                raise ValueError("Invalid player position.")
+        
         top_three = [
             (
                 Optimizer.discounted_reward(
@@ -229,8 +238,6 @@ class Optimizer:
                         out_players = u_team.mids
                     elif candidate.position == 4:
                         out_players = u_team.fwds
-                    else:
-                        raise ValueError("Invalid player position.")
                     if candidate not in out_players:
                         for out_player in out_players:
                             v_team = u_team.transfer_player(out_player, candidate)
