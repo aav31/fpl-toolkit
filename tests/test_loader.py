@@ -2,14 +2,15 @@ import unittest
 from fpl import Loader, Player
 from unittest.mock import patch
 
+
 class TestLoader(unittest.TestCase):
-    """Unit tests for the loader module.
-    """
+    """Unit tests for the loader module."""
+
     def setUp(self):
         self.mock_elements = [
             {"id": 1, "web_name": "John Doe"},
             {"id": 2, "web_name": "Jane Smith"},
-            {"id": 3, "web_name": "Johnny Appleseed"}
+            {"id": 3, "web_name": "Johnny Appleseed"},
         ]
         self.mock_player_info = {
             1: {
@@ -18,7 +19,7 @@ class TestLoader(unittest.TestCase):
                 "team": "Team A",
                 "now_cost": 100,
                 "first_name": "John",
-                "second_name": "Doe"
+                "second_name": "Doe",
             },
             2: {
                 "web_name": "Jane Smith",
@@ -26,7 +27,7 @@ class TestLoader(unittest.TestCase):
                 "team": "Team B",
                 "now_cost": 90,
                 "first_name": "Jane",
-                "second_name": "Smith"
+                "second_name": "Smith",
             },
             3: {
                 "web_name": "Johnny Appleseed",
@@ -34,10 +35,10 @@ class TestLoader(unittest.TestCase):
                 "team": "Team C",
                 "now_cost": 110,
                 "first_name": "Johnny",
-                "second_name": "Appleseed"
-            }
+                "second_name": "Appleseed",
+            },
         }
-        
+
     @unittest.skip("TODO: Implement this test")
     def test_get_static_info(self):
         pass
@@ -58,12 +59,32 @@ class TestLoader(unittest.TestCase):
     def test_get_team_basic_info(self):
         pass
 
-    @unittest.skip("TODO: Implement this test")
-    def test_get_my_team_from_api(self):
-        pass
+    def test_get_my_team(self):
+        with self.assertRaises(
+            ValueError, msg="The 'how' argument must be api or local."
+        ):
+            Loader.get_my_team(
+                login="", password="", manager_id="", how="wrong_arg", filename=""
+            )
 
-    @unittest.skip("TODO: Implement this test")
-    def test_get_my_team_from_local(self):
+        with self.assertRaises(
+            ValueError, msg="When 'how' argument is local filename must be non-empty."
+        ):
+            Loader.get_my_team(
+                login="", password="", manager_id="", how="local", filename=""
+            )
+
+        my_team = Loader.get_my_team(
+            login="",
+            password="",
+            manager_id="",
+            how="local",
+            filename="./resources/my_team.json",
+        )
+        self.assertEqual(len(my_team.gkps), 2)
+        self.assertEqual(len(my_team.defs), 5)
+        self.assertEqual(len(my_team.mids), 5)
+        self.assertEqual(len(my_team.fwds), 3)
         pass
 
     @unittest.skip("TODO: Implement this test")
@@ -89,14 +110,16 @@ class TestLoader(unittest.TestCase):
     @unittest.skip("TODO: Implement this test")
     def test_get_player_future_info_for_gameweek(self):
         pass
-    
+
     @unittest.skip("TODO: Implement this test")
     def test_get_position_info(self):
         pass
-    
-    @patch('fpl.loader.Loader.get_static_info')
-    @patch('fpl.loader.Loader.get_player_basic_info')
-    def test_find_matching_players(self, mock_get_player_basic_info, mock_get_static_info):
+
+    @patch("fpl.loader.Loader.get_static_info")
+    @patch("fpl.loader.Loader.get_player_basic_info")
+    def test_find_matching_players(
+        self, mock_get_player_basic_info, mock_get_static_info
+    ):
         # Set up mock return values
         mock_get_static_info.return_value = {"elements": self.mock_elements}
         mock_get_player_basic_info.side_effect = lambda i: self.mock_player_info[i]
@@ -113,22 +136,22 @@ class TestLoader(unittest.TestCase):
                 name="John Doe",
                 position="Midfielder",
                 club="Team A",
-                cost=100
+                cost=100,
             ),
             Player(
                 element=3,
                 name="Johnny Appleseed",
                 position="Forward",
                 club="Team C",
-                cost=110
-            )
+                cost=110,
+            ),
         ]
         expected_full_names = ["John Doe", "Johnny Appleseed"]
         expected_result = list(zip(expected_players, expected_full_names))
 
         self.assertEqual(result, expected_result)
 
-    @patch('fpl.loader.Loader.get_static_info')
+    @patch("fpl.loader.Loader.get_static_info")
     def test_find_matching_players_no_match(self, mock_get_static_info):
         # Set up mock return values
         mock_get_static_info.return_value = {"elements": self.mock_elements}

@@ -18,9 +18,9 @@ class TestLoaderIntegration(unittest.TestCase):
         self.assertIn("web_name", static_info["elements"][0])
         self.assertIn("total_points", static_info["elements"][0])
         for p in static_info["elements"]:
-            if p["web_name"] == "Palmer":
+            if p["web_name"] == "Alexander-Arnold":
                 self.assertEqual(
-                    182, p["id"], "Player unique identifier should not change"
+                    311, p["id"], "Player unique identifier should not change"
                 )
 
     def test_get_fixtures(self):
@@ -69,15 +69,8 @@ class TestLoaderIntegration(unittest.TestCase):
         self.assertEqual(arsenal["short_name"], "ARS")
 
     @unittest.skip("TODO: Implement this test")
-    def test_get_my_team_from_api(self):
+    def test_get_my_team(self):
         pass
-
-    def test_get_my_team_from_local(self):
-        my_team = Loader.get_my_team_from_local("./resources/my_team.json")
-        self.assertEqual(len(my_team.gkps), 2)
-        self.assertEqual(len(my_team.defs), 5)
-        self.assertEqual(len(my_team.mids), 5)
-        self.assertEqual(len(my_team.fwds), 3)
 
     def test_get_next_gameweek(self):
         self.assertEqual(

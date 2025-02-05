@@ -9,8 +9,7 @@ Available functions:
 - get_fixture_info: Return the information for a particular fixture.
 - get_fixtures_for_gameweek: Return the fixtures from FPL for a particular gameweek.
 - get_team_basic_info: Return the information for a particular team given their team id.
-- get_my_team_from_api: Get team information of current fpl team.
-- get_my_team_from_local: Gets your team information from a local json file.
+- get_my_team: Get team information of current fpl team either from the api or locally.
 - get_next_gameweek: Get the id of the next gameweek as an integer as of a particular UTC timestamp.
 - get_my_historical_team_from_gameweek: Returns the historical team a manager used for a particular gameweek.
 - get_player_basic_info: Get the basic information of a player so far this season and based on the most recent gameweek.
@@ -32,6 +31,7 @@ from fuzzywuzzy import fuzz
 from fuzzywuzzy import process
 from fpl.team import Team
 from fpl.player import Player
+
 
 class Loader:
     """Static class to get data from the FPL API.
@@ -164,95 +164,98 @@ class Loader:
 
     @staticmethod
     @lru_cache(maxsize=1)
-    def get_my_team_from_api(
-        login: str, password: str, manager_id: int
+    def get_my_team(
+        login: str, password: str, manager_id: int, how: str = "api", filename: str = ""
     ) -> Team:
-        """Get team information of current fpl team.
+        """Get team information of current fpl team either from the api or locally.
         To get manager id you need to log in -> inspect -> network,
         you should see an api request e.g. myteam/3247546
 
-        :param login: Username email address.
-        :param password: Your password.
-        :param manager_id: Manager id.
+        :param login: Username email address. Not used when 'how' is 'local'.
+        :param password: Your password. Not used when 'how' is 'local'.
+        :param manager_id: Manager id. Not used when 'how' is 'local'.
+        :param how: 'local' or 'api' indicating download method.
+        :param filename: Path to a local json blob.
 
         :return: Team object
 
+        :raises ValueError: If arguments are specified incorrectly.
         :raises requests.exceptions.RequestException: If there is an error querying the API.
         """
 
-        headers = {
-            "User-Agent": "Dalvik/2.1.0 (Linux; U; Android 5.1; PRO 5 Build/LMY47D)",
-            "accept-language": "en",
-        }
-        data = {
-            "login": login,
-            "password": password,
-            "app": "plfpl-web",
-            "redirect_uri": "https://fantasy.premierleague.com/a/login",
-        }
-        url = "https://users.premierleague.com/accounts/login/"
-        team_url = "https://fantasy.premierleague.com/api/my-team/{}/".format(
-            manager_id
+        if how not in {"api", "local"}:
+            raise ValueError(
+                f"Invalid value for 'how': {how}. Must be 'api' or local'."
+            )
+
+        if how == "local" and not filename:
+            raise ValueError("You must specify a filename when 'how' is 'local'.")
+
+        if how == "api":
+            headers = {
+                "User-Agent": "Dalvik/2.1.0 (Linux; U; Android 5.1; PRO 5 Build/LMY47D)",
+                "accept-language": "en",
+            }
+            data = {
+                "login": login,
+                "password": password,
+                "app": "plfpl-web",
+                "redirect_uri": "https://fantasy.premierleague.com/a/login",
+            }
+            url = "https://users.premierleague.com/accounts/login/"
+            team_url = "https://fantasy.premierleague.com/api/my-team/{}/".format(
+                manager_id
+            )
+
+            try:
+                session = requests.session()
+                res = session.post(url, data=data, headers=headers)
+                res = session.get(team_url)
+                d = json.loads(
+                    res.content
+                )  # Dictionary with three sections picks, chips, transfers
+                res.raise_for_status()
+            except requests.exceptions.RequestException:
+                raise requests.exceptions.RequestException("Error querying API")
+            finally:
+                session.close()
+        else:
+            with open(filename) as fd:
+                d = json.load(
+                    fd
+                )  # Dictionary with three sections picks, chips, transfers
+
+        picks = d["picks"]
+        gkps, defs, mids, fwds = set(), set(), set(), set()
+        for pick in picks:
+            player = Player(
+                element=pick["element"],
+                name=Loader.get_player_basic_info(pick["element"])["web_name"],
+                position=Loader.get_player_basic_info(pick["element"])["element_type"],
+                club=Loader.get_player_basic_info(pick["element"])["team"],
+                cost=pick["selling_price"],
+            )
+            if player.position == 1:
+                gkps.add(player)
+            if player.position == 2:
+                defs.add(player)
+            if player.position == 3:
+                mids.add(player)
+            if player.position == 4:
+                fwds.add(player)
+
+        money_in_bank = d["transfers"]["bank"]
+        free_transfers = (
+            0 if d["transfers"]["limit"] is None else d["transfers"]["limit"]
         )
-
-        try:
-            session = requests.session()
-            res = session.post(url, data=data, headers=headers)
-            res = session.get(team_url)
-            d = json.loads(res.content) # Dictionary with three sections picks, chips, transfers
-            res.raise_for_status()
-        except requests.exceptions.RequestException:
-            raise requests.exceptions.RequestException("Error querying API")
-        finally:
-            session.close()
-            
-        
-        picks = d["picks"]
-        gkps, defs, mids, fwds = set(), set(), set(), set()
-        for pick in picks:
-            player = Player(element=pick["element"], name=Loader.get_player_basic_info(pick["element"])["web_name"], position=Loader.get_player_basic_info(pick["element"])["element_type"], club=Loader.get_player_basic_info(pick["element"])["team"], cost=pick["selling_price"])
-            if player.position == 1:
-                gkps.add(player)
-            if player.position == 2:
-                defs.add(player)
-            if player.position == 3:
-                mids.add(player)
-            if player.position == 4:
-                fwds.add(player)
-        
-        money_in_bank = d["transfers"]["bank"]
-        free_transfers = 0 if d["transfers"]["limit"] is None else d["transfers"]["limit"]
-        team = Team(money_in_bank,free_transfers,frozenset(gkps),frozenset(defs),frozenset(mids),frozenset(fwds))
-        return team
-
-    @staticmethod
-    def get_my_team_from_local(local_filename: str) -> Team:
-        """Gets your team information from a local json file.
-        Local json file of team can be downloaded from the fpl website.
-        
-        :param local_filename: Path to a .json file.
-
-        :return: Team object
-        """
-        with open(local_filename) as fd:
-            d = json.load(fd) # Dictionary with three sections picks, chips, transfers
-            
-        picks = d["picks"]
-        gkps, defs, mids, fwds = set(), set(), set(), set()
-        for pick in picks:
-            player = Player(element=pick["element"], name=Loader.get_player_basic_info(pick["element"])["web_name"], position=Loader.get_player_basic_info(pick["element"])["element_type"], club=Loader.get_player_basic_info(pick["element"])["team"], cost=pick["selling_price"])
-            if player.position == 1:
-                gkps.add(player)
-            if player.position == 2:
-                defs.add(player)
-            if player.position == 3:
-                mids.add(player)
-            if player.position == 4:
-                fwds.add(player)
-        
-        money_in_bank = d["transfers"]["bank"]
-        free_transfers = 0 if d["transfers"]["limit"] is None else d["transfers"]["limit"]
-        team = Team(money_in_bank,free_transfers,frozenset(gkps),frozenset(defs),frozenset(mids),frozenset(fwds))
+        team = Team(
+            money_in_bank,
+            free_transfers,
+            frozenset(gkps),
+            frozenset(defs),
+            frozenset(mids),
+            frozenset(fwds),
+        )
         return team
 
     @staticmethod
@@ -411,9 +414,11 @@ class Loader:
                 return position
 
         raise KeyError("Position id {} not found in map".format(position_id))
-        
+
     @staticmethod
-    def find_matching_players(search_name: str, threshold: int = 80) -> List[Tuple[Player, str]]:
+    def find_matching_players(
+        search_name: str, threshold: int = 80
+    ) -> List[Tuple[Player, str]]:
         """Search for players whose web names partially match the search_name using fuzzy matching.
 
         :param search_name: The name to search for.
@@ -427,7 +432,11 @@ class Loader:
         web_names = [p["web_name"] for p in elements]
         matches = process.extract(search_name, web_names, scorer=fuzz.partial_ratio)
         filtered_matches = [match for match in matches if match[1] >= threshold]
-        matched_ids = [p["id"] for p in elements if p["web_name"] in [match[0] for match in filtered_matches]]
+        matched_ids = [
+            p["id"]
+            for p in elements
+            if p["web_name"] in [match[0] for match in filtered_matches]
+        ]
 
         if not matched_ids:
             raise ValueError("No matching players found.")
@@ -440,10 +449,9 @@ class Loader:
                 name=basic_info["web_name"],
                 position=basic_info["element_type"],
                 club=basic_info["team"],
-                cost=basic_info["now_cost"]
+                cost=basic_info["now_cost"],
             )
             full_name = f"{basic_info['first_name']} {basic_info['second_name']}"
             players.append((player, full_name))
 
         return players
-
