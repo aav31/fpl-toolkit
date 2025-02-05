@@ -4,6 +4,7 @@ The Optimizer class includes methods to calculate the optimal formation, discoun
 
 Available functions:
 - optimal_formation: Return the optimal formation of an FPL team for a particular gameweek.
+- discounted_reward_player: Calculate the discounted reward you can expect from a player over a particular horizon.
 - discounted_reward: Calculate the discounted reward you can expect from your team over a particular horizon.
 - optimize_team: Find the top three optimized teams based on the given parameters.
 """
@@ -133,6 +134,27 @@ class Optimizer:
             "captain": captain,
             "total_exp_points": total_exp_points,
         }
+    
+    @staticmethod
+    def discounted_reward_player(player: Player, epc: ExpectedPointsCalculator, gameweek: int, horizon: int, gamma: float = 1):
+        """Calculate the discounted reward you can expect from a player over a particular horizon.
+        
+        :param player: The player for which the reward is to be calculated.
+        :param epc: Expected points calculator.
+        :param gameweek: The gameweek from which to start accumulating the reward.
+        :param horizon: The number of gameweeks over which to accumulate the reward.
+        :param gamma: Discount factor.
+        
+        :return: Discounted reward of a player over a partcular horizon.
+        """
+        
+        discounted_reward = 0
+        discount_factor = 1
+        for h in range(horizon):
+            discounted_reward += discount_factor * epc.get_expected_points(player.element, gameweek + h)
+            discount_factor *= gamma
+        
+        return discounted_reward
 
     @staticmethod
     def discounted_reward(
@@ -144,6 +166,8 @@ class Optimizer:
         wildcard: bool = False,
     ) -> float:
         """Calculate the discounted reward you can expect from your team over a particular horizon.
+        The discounted reward of a team is not the sum of the players.
+        This is because each week the team formation is changed to reflect the best player.
 
         :param team: The team for which the reward is to be calculated.
         :param epc: Expected points calculator.

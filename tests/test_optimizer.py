@@ -273,6 +273,40 @@ class TestOptimizerOptimalFormation(unittest.TestCase):
         )
 
 
+class TestOptimizerDiscountedRewardPlayer(unittest.TestCase):
+    """Unit tests for the discounted_reward_player method of the Optimizer class."""
+    
+    def setUp(self):
+        class MockCalculator(ExpectedPointsCalculator):
+            def get_expected_points(player_id: int, gameweek: int) -> float:
+                if gameweek == 1:
+                    return 0
+                if gameweek == 2:
+                    return 1
+                
+        self.mock_calculator = MockCalculator
+        self.mock_player = Player(element=1, name="1", position=1, club=1, cost=1)
+        
+    def test_gameweek(self):
+        actual = Optimizer.discounted_reward_player(player=self.mock_player, epc=self.mock_calculator, gameweek=1, horizon=1, gamma=1)
+        expected = 0
+        self.assertAlmostEqual(actual, expected, msg="Should be 0 because first gameweek")
+        
+        actual = Optimizer.discounted_reward_player(player=self.mock_player, epc=self.mock_calculator, gameweek=2, horizon=1, gamma=1)
+        expected = 1
+        self.assertAlmostEqual(actual, expected, msg="Should be 1 because second gameweek")
+        
+    def test_horizon(self):
+        actual = Optimizer.discounted_reward_player(player=self.mock_player, epc=self.mock_calculator, gameweek=1, horizon=2, gamma=1)
+        expected = 1
+        self.assertAlmostEqual(actual, expected, msg="Should be 1 because over first and second gameweeks")
+        
+    def test_gamma(self):
+        actual = Optimizer.discounted_reward_player(player=self.mock_player, epc=self.mock_calculator, gameweek=1, horizon=2, gamma=0.5)
+        expected = 0.5
+        self.assertAlmostEqual(actual, expected, msg="Should be 0.5 because over first and second gameweeks and second gameweek should be discounted")
+        
+        
 class TestOptimizerDiscountedReward(unittest.TestCase):
     """Unit tests for the discounted_reward method of the Optimizer class."""
 
