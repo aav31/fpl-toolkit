@@ -1,9 +1,10 @@
 """
 Unit tests for the optimizer module.
 Test cases:
-- TestOptimizerOptimalFormation: Unit tests for the optimal_formation method of the Optimizer class.
-- TestOptimizerDiscountedReward: Unit tests for the discounted_reward method of the Optimizer class.
-- TestOptimizerOptimizeTeam: Unit tests for the optimize_team method of the Optimizer class.
+- TestOptimizerCalcOptimalFormation: Unit tests for the calc_optimal_formation method of the Optimizer class.
+- TestOptimizerCalcDiscountedRewardPlayer: Unit tests for the calc_discounted_reward_player method of the Optimizer class.
+- TestOptimizerCalcDiscountedRewardTeam: Unit tests for the calc_discounted_reward_team method of the Optimizer class.
+- TestOptimizerCalcOptimalTeams: Unit tests for the calc_optimal_teams method of the Optimizer class.
 """
 
 import unittest
@@ -19,29 +20,29 @@ def setUpModule():
     global team
 
     # GKPs
-    gkp_club_1 = Player.from_min_info(element=1, position=1, club=1, cost=40)
-    gkp_club_2 = Player.from_min_info(element=2, position=1, club=2, cost=45)
+    gkp_club_1 = Player(element=1, name="1", position=1, club=1, cost=40)
+    gkp_club_2 = Player(element=2, name="2", position=1, club=2, cost=45)
 
     # DEFs
-    def_club_1 = Player.from_min_info(element=3, position=2, club=1, cost=40)
-    def_club_2 = Player.from_min_info(element=4, position=2, club=2, cost=45)
-    def_club_3 = Player.from_min_info(element=5, position=2, club=3, cost=50)
-    def_club_4 = Player.from_min_info(element=6, position=2, club=4, cost=55)
-    def_club_5 = Player.from_min_info(element=7, position=2, club=5, cost=60)
+    def_club_1 = Player(element=3, name="3", position=2, club=1, cost=40)
+    def_club_2 = Player(element=4, name="4", position=2, club=2, cost=45)
+    def_club_3 = Player(element=5, name="5", position=2, club=3, cost=50)
+    def_club_4 = Player(element=6, name="6", position=2, club=4, cost=55)
+    def_club_5 = Player(element=7, name="7", position=2, club=5, cost=60)
 
     # MIDs
-    mid_club_1 = Player.from_min_info(element=8, position=3, club=1, cost=45)
-    mid_club_2 = Player.from_min_info(element=9, position=3, club=2, cost=50)
-    mid_club_3 = Player.from_min_info(element=10, position=3, club=3, cost=60)
-    mid_club_4 = Player.from_min_info(element=11, position=3, club=4, cost=70)
-    mid_club_5 = Player.from_min_info(element=12, position=3, club=5, cost=80)
+    mid_club_1 = Player(element=8, name="8", position=3, club=1, cost=45)
+    mid_club_2 = Player(element=9, name="9", position=3, club=2, cost=50)
+    mid_club_3 = Player(element=10, name="10", position=3, club=3, cost=60)
+    mid_club_4 = Player(element=11, name="11", position=3, club=4, cost=70)
+    mid_club_5 = Player(element=12, name="12", position=3, club=5, cost=80)
 
     # FWDs
-    fwd_club_1 = Player.from_min_info(element=16, position=4, club=1, cost=45)
-    fwd_club_2 = Player.from_min_info(element=17, position=4, club=2, cost=55)
-    fwd_club_3 = Player.from_min_info(element=13, position=4, club=3, cost=60)
-    fwd_club_4 = Player.from_min_info(element=14, position=4, club=4, cost=75)
-    fwd_club_5 = Player.from_min_info(element=15, position=4, club=5, cost=80)
+    fwd_club_1 = Player(element=16, name="16", position=4, club=1, cost=45)
+    fwd_club_2 = Player(element=17, name="17", position=4, club=2, cost=55)
+    fwd_club_3 = Player(element=13, name="13", position=4, club=3, cost=60)
+    fwd_club_4 = Player(element=14, name="14", position=4, club=4, cost=75)
+    fwd_club_5 = Player(element=15, name="15", position=4, club=5, cost=80)
 
     # Frozensets
     gkps = frozenset([gkp_club_1, gkp_club_2])
@@ -54,8 +55,8 @@ def setUpModule():
     )
 
 
-class TestOptimizerOptimalFormation(unittest.TestCase):
-    """Unit tests for the optimal_formation method of the Optimizer class."""
+class TestOptimizerCalcOptimalFormation(unittest.TestCase):
+    """Unit tests for the calc_optimal_formation method of the Optimizer class."""
 
     def setUp(self):
         self.player_map = {
@@ -145,12 +146,12 @@ class TestOptimizerOptimalFormation(unittest.TestCase):
             15: 2.0,
         }
 
-    def test_optimal_formation_A_442(self):
+    def test_calc_optimal_formation_A_442(self):
         class MockCalculator(ExpectedPointsCalculator):
             def get_expected_points(player_id: int, gameweek: int) -> float:
                 return self.expected_points_map_A[player_id]
 
-        result = Optimizer.optimal_formation(team, MockCalculator, 0)
+        result = Optimizer.calc_optimal_formation(team, MockCalculator, 0)
         # check formation is 442 as expected
         self.assertEqual(result["gkps"], {self.player_map[1]})
         self.assertEqual(
@@ -174,12 +175,12 @@ class TestOptimizerOptimalFormation(unittest.TestCase):
         self.assertEqual(result["fwds"], {self.player_map[13], self.player_map[14]})
         self.assertAlmostEqual(result["total_exp_points"], 60)
 
-    def test_optimal_formation_B_343(self):
+    def test_calc_optimal_formation_B_343(self):
         class MockCalculator(ExpectedPointsCalculator):
             def get_expected_points(player_id: int, gameweek: int) -> float:
                 return self.expected_points_map_B[player_id]
 
-        result = Optimizer.optimal_formation(team, MockCalculator, 0)
+        result = Optimizer.calc_optimal_formation(team, MockCalculator, 0)
         # check formation is 343 as expected
         self.assertEqual(result["gkps"], {self.player_map[2]})
         self.assertEqual(
@@ -200,12 +201,12 @@ class TestOptimizerOptimalFormation(unittest.TestCase):
         )
         self.assertAlmostEqual(result["total_exp_points"], 119)
 
-    def test_optimal_formation_C_541(self):
+    def test_calc_optimal_formation_C_541(self):
         class MockCalculator(ExpectedPointsCalculator):
             def get_expected_points(player_id: int, gameweek: int) -> float:
                 return self.expected_points_map_C[player_id]
 
-        result = Optimizer.optimal_formation(team, MockCalculator, 0)
+        result = Optimizer.calc_optimal_formation(team, MockCalculator, 0)
         # check formation is 541 as expected
         self.assertEqual(result["gkps"], {self.player_map[1]})
         self.assertEqual(
@@ -230,12 +231,12 @@ class TestOptimizerOptimalFormation(unittest.TestCase):
         self.assertEqual(result["fwds"], {self.player_map[13]})
         self.assertAlmostEqual(result["total_exp_points"], 114)
 
-    def test_optimal_formation_D_523(self):
+    def test_calc_optimal_formation_D_523(self):
         class MockCalculator(ExpectedPointsCalculator):
             def get_expected_points(player_id: int, gameweek: int) -> float:
                 return self.expected_points_map_D[player_id]
 
-        result = Optimizer.optimal_formation(team, MockCalculator, 0)
+        result = Optimizer.calc_optimal_formation(team, MockCalculator, 0)
         # check formation is 523 as expected
         self.assertEqual(result["gkps"], {self.player_map[2]})
         self.assertEqual(
@@ -262,7 +263,7 @@ class TestOptimizerOptimalFormation(unittest.TestCase):
                     return 10.0  # Normal expected points for player 1
                 return 0.0  # Expected points for other players
 
-        result = Optimizer.optimal_formation(team, MockCalculator, 0)
+        result = Optimizer.calc_optimal_formation(team, MockCalculator, 0)
 
         # Check if captain's points are doubled
         self.assertEqual(
@@ -273,9 +274,9 @@ class TestOptimizerOptimalFormation(unittest.TestCase):
         )
 
 
-class TestOptimizerDiscountedRewardPlayer(unittest.TestCase):
-    """Unit tests for the discounted_reward_player method of the Optimizer class."""
-    
+class TestOptimizerCalcDiscountedRewardPlayer(unittest.TestCase):
+    """Unit tests for the calc_discounted_reward_player method of the Optimizer class."""
+
     def setUp(self):
         class MockCalculator(ExpectedPointsCalculator):
             def get_expected_points(player_id: int, gameweek: int) -> float:
@@ -283,32 +284,66 @@ class TestOptimizerDiscountedRewardPlayer(unittest.TestCase):
                     return 0
                 if gameweek == 2:
                     return 1
-                
+
         self.mock_calculator = MockCalculator
         self.mock_player = Player(element=1, name="1", position=1, club=1, cost=1)
-        
+
     def test_gameweek(self):
-        actual = Optimizer.discounted_reward_player(player=self.mock_player, epc=self.mock_calculator, gameweek=1, horizon=1, gamma=1)
+        actual = Optimizer.calc_discounted_reward_player(
+            player=self.mock_player,
+            epc=self.mock_calculator,
+            gameweek=1,
+            horizon=1,
+            gamma=1,
+        )
         expected = 0
-        self.assertAlmostEqual(actual, expected, msg="Should be 0 because first gameweek")
-        
-        actual = Optimizer.discounted_reward_player(player=self.mock_player, epc=self.mock_calculator, gameweek=2, horizon=1, gamma=1)
+        self.assertAlmostEqual(
+            actual, expected, msg="Should be 0 because first gameweek"
+        )
+
+        actual = Optimizer.calc_discounted_reward_player(
+            player=self.mock_player,
+            epc=self.mock_calculator,
+            gameweek=2,
+            horizon=1,
+            gamma=1,
+        )
         expected = 1
-        self.assertAlmostEqual(actual, expected, msg="Should be 1 because second gameweek")
-        
+        self.assertAlmostEqual(
+            actual, expected, msg="Should be 1 because second gameweek"
+        )
+
     def test_horizon(self):
-        actual = Optimizer.discounted_reward_player(player=self.mock_player, epc=self.mock_calculator, gameweek=1, horizon=2, gamma=1)
+        actual = Optimizer.calc_discounted_reward_player(
+            player=self.mock_player,
+            epc=self.mock_calculator,
+            gameweek=1,
+            horizon=2,
+            gamma=1,
+        )
         expected = 1
-        self.assertAlmostEqual(actual, expected, msg="Should be 1 because over first and second gameweeks")
-        
+        self.assertAlmostEqual(
+            actual, expected, msg="Should be 1 because over first and second gameweeks"
+        )
+
     def test_gamma(self):
-        actual = Optimizer.discounted_reward_player(player=self.mock_player, epc=self.mock_calculator, gameweek=1, horizon=2, gamma=0.5)
+        actual = Optimizer.calc_discounted_reward_player(
+            player=self.mock_player,
+            epc=self.mock_calculator,
+            gameweek=1,
+            horizon=2,
+            gamma=0.5,
+        )
         expected = 0.5
-        self.assertAlmostEqual(actual, expected, msg="Should be 0.5 because over first and second gameweeks and second gameweek should be discounted")
-        
-        
-class TestOptimizerDiscountedReward(unittest.TestCase):
-    """Unit tests for the discounted_reward method of the Optimizer class."""
+        self.assertAlmostEqual(
+            actual,
+            expected,
+            msg="Should be 0.5 because over first and second gameweeks and second gameweek should be discounted",
+        )
+
+
+class TestOptimizerCalcDiscountedRewardTeam(unittest.TestCase):
+    """Unit tests for the calc_discounted_reward_team method of the Optimizer class."""
 
     def setUp(self):
         class MockCalculator(ExpectedPointsCalculator):
@@ -323,7 +358,7 @@ class TestOptimizerDiscountedReward(unittest.TestCase):
         self.mock_calculator = MockCalculator
 
     def test_transfer_adjustment_with_five_free_transfers(self):
-        actual = Optimizer.discounted_reward(
+        actual = Optimizer.calc_discounted_reward_team(
             Team(
                 gkps=gkps,
                 defs=defs,
@@ -332,7 +367,7 @@ class TestOptimizerDiscountedReward(unittest.TestCase):
                 money_in_bank=0,
                 free_transfers=5,
             ),
-            self.mock_calculator,
+            epc=self.mock_calculator,
             gameweek=1,
             horizon=3,
         )
@@ -342,7 +377,7 @@ class TestOptimizerDiscountedReward(unittest.TestCase):
         )
 
     def test_transfer_adjustment_with_four_free_transfers(self):
-        actual = Optimizer.discounted_reward(
+        actual = Optimizer.calc_discounted_reward_team(
             Team(
                 gkps=gkps,
                 defs=defs,
@@ -351,7 +386,7 @@ class TestOptimizerDiscountedReward(unittest.TestCase):
                 money_in_bank=0,
                 free_transfers=4,
             ),
-            self.mock_calculator,
+            epc=self.mock_calculator,
             gameweek=1,
             horizon=3,
         )
@@ -361,7 +396,7 @@ class TestOptimizerDiscountedReward(unittest.TestCase):
         )
 
     def test_transfer_adjustment_with_three_free_transfers(self):
-        actual = Optimizer.discounted_reward(
+        actual = Optimizer.calc_discounted_reward_team(
             Team(
                 gkps=gkps,
                 defs=defs,
@@ -370,17 +405,17 @@ class TestOptimizerDiscountedReward(unittest.TestCase):
                 money_in_bank=0,
                 free_transfers=3,
             ),
-            self.mock_calculator,
+            epc=self.mock_calculator,
             gameweek=1,
             horizon=3,
         )
         expected = (
-            12 * (10 + 20 + 30) - 0.8*3
+            12 * (10 + 20 + 30) - 0.8 * 3
         )  # 12 players including captain for each gameweek minus penalty applied every week
         self.assertAlmostEqual(actual, expected, msg="Penalty applied")
 
     def test_transfer_adjustment_with_two_free_transfers(self):
-        actual = Optimizer.discounted_reward(
+        actual = Optimizer.calc_discounted_reward_team(
             Team(
                 gkps=gkps,
                 defs=defs,
@@ -389,17 +424,17 @@ class TestOptimizerDiscountedReward(unittest.TestCase):
                 money_in_bank=0,
                 free_transfers=2,
             ),
-            self.mock_calculator,
+            epc=self.mock_calculator,
             gameweek=1,
             horizon=3,
         )
         expected = (
-            12 * (10 + 20 + 30) - 1.6*3
+            12 * (10 + 20 + 30) - 1.6 * 3
         )  # 12 players including captain for each gameweek minus penalty
         self.assertAlmostEqual(actual, expected, msg="Penalty applied")
 
     def test_transfer_adjustment_with_zero_free_transfers(self):
-        actual = Optimizer.discounted_reward(
+        actual = Optimizer.calc_discounted_reward_team(
             Team(
                 gkps=gkps,
                 defs=defs,
@@ -408,17 +443,17 @@ class TestOptimizerDiscountedReward(unittest.TestCase):
                 money_in_bank=0,
                 free_transfers=0,
             ),
-            self.mock_calculator,
+            epc=self.mock_calculator,
             gameweek=1,
             horizon=3,
         )
         expected = (
-            12 * (10 + 20 + 30) - 3.2*3
+            12 * (10 + 20 + 30) - 3.2 * 3
         )  # 12 players including captain for each gameweek minus penalty
         self.assertAlmostEqual(actual, expected, msg="Penalty applied")
 
     def test_transfer_adjustment_with_negative_free_transfers(self):
-        actual = Optimizer.discounted_reward(
+        actual = Optimizer.calc_discounted_reward_team(
             Team(
                 gkps=gkps,
                 defs=defs,
@@ -427,15 +462,15 @@ class TestOptimizerDiscountedReward(unittest.TestCase):
                 money_in_bank=0,
                 free_transfers=-1,
             ),
-            self.mock_calculator,
+            epc=self.mock_calculator,
             gameweek=1,
             horizon=3,
         )
-        expected = 12 * (10 + 20 + 30) - 4*3
+        expected = 12 * (10 + 20 + 30) - 4 * 3
         self.assertAlmostEqual(actual, expected, msg="Penalty applied")
 
     def test_horizon(self):
-        actual = Optimizer.discounted_reward(
+        actual = Optimizer.calc_discounted_reward_team(
             Team(
                 gkps=gkps,
                 defs=defs,
@@ -444,7 +479,7 @@ class TestOptimizerDiscountedReward(unittest.TestCase):
                 money_in_bank=0,
                 free_transfers=5,
             ),
-            self.mock_calculator,
+            epc=self.mock_calculator,
             gameweek=1,
             horizon=1,
         )
@@ -452,7 +487,7 @@ class TestOptimizerDiscountedReward(unittest.TestCase):
         self.assertAlmostEqual(actual, expected, msg="one week")
 
     def test_gamma(self):
-        actual = Optimizer.discounted_reward(
+        actual = Optimizer.calc_discounted_reward_team(
             Team(
                 gkps=gkps,
                 defs=defs,
@@ -461,7 +496,7 @@ class TestOptimizerDiscountedReward(unittest.TestCase):
                 money_in_bank=0,
                 free_transfers=5,
             ),
-            self.mock_calculator,
+            epc=self.mock_calculator,
             gameweek=1,
             horizon=2,
             gamma=0.5,
@@ -470,14 +505,14 @@ class TestOptimizerDiscountedReward(unittest.TestCase):
         expected_points_for_week_2 = 12 * 20
         expected = expected_points_for_week_1 + 0.5 * expected_points_for_week_2
         self.assertAlmostEqual(actual, expected)
-        
+
     @unittest.skip("TODO: Implement this test")
     def test_wildcard(self):
         pass
 
 
-class TestOptimizerOptimizeTeam(unittest.TestCase):
-    """Unit tests for the optimize_team method of the Optimizer class."""
+class TestOptimizerCalcOptimalTeams(unittest.TestCase):
+    """Unit tests for the calc_optimal_teams method of the Optimizer class."""
 
     def setUp(self):
         class MockCalculatorZero(ExpectedPointsCalculator):
@@ -488,7 +523,7 @@ class TestOptimizerOptimizeTeam(unittest.TestCase):
 
     def test_optimize_team_no_candidates(self):
         candidates = []
-        top_three = Optimizer.optimize_team(
+        top_three = Optimizer.calc_optimal_teams(
             team,
             candidates,
             epc=self.epcZero,
@@ -512,7 +547,7 @@ class TestOptimizerOptimizeTeam(unittest.TestCase):
             Player(element=200, name="Salah", position=3, club=20, cost=120),
             Player(element=300, name="Potato man", position=4, club=1, cost=40),
         ]
-        top_three = Optimizer.optimize_team(
+        top_three = Optimizer.calc_optimal_teams(
             team,
             candidates,
             epc=self.epcZero,
@@ -543,7 +578,7 @@ class TestOptimizerOptimizeTeam(unittest.TestCase):
                 cost=70,
             )
         ]
-        top_three = Optimizer.optimize_team(
+        top_three = Optimizer.calc_optimal_teams(
             team,
             candidates,
             epc=self.epcZero,
@@ -584,7 +619,7 @@ class TestOptimizerOptimizeTeam(unittest.TestCase):
             def get_expected_points(player_id: int, gameweek: int) -> float:
                 return 10 if player_id == 200 else 0
 
-        top_three = Optimizer.optimize_team(
+        top_three = Optimizer.calc_optimal_teams(
             team,
             candidates,
             epc=MockCalculator,
@@ -633,7 +668,7 @@ class TestOptimizerOptimizeTeam(unittest.TestCase):
                     return 3
                 return 0
 
-        top_three = Optimizer.optimize_team(
+        top_three = Optimizer.calc_optimal_teams(
             team,
             candidates,
             epc=MockCalculator,
@@ -686,7 +721,7 @@ class TestOptimizerOptimizeTeam(unittest.TestCase):
                 return 0
 
         # one week horizon
-        top_three = Optimizer.optimize_team(
+        top_three = Optimizer.calc_optimal_teams(
             team,
             candidates,
             epc=MockCalculator,
@@ -716,7 +751,7 @@ class TestOptimizerOptimizeTeam(unittest.TestCase):
         )
 
         # two week horizon
-        top_three = Optimizer.optimize_team(
+        top_three = Optimizer.calc_optimal_teams(
             team,
             candidates,
             epc=MockCalculator,
@@ -727,12 +762,12 @@ class TestOptimizerOptimizeTeam(unittest.TestCase):
         self.assertEqual(len(top_three), 3)
 
         third_best_score, third_best_team = heapq.heappop(top_three)
-        self.assertEqual(third_best_score, 20 + 20 - 2.4*2)
+        self.assertEqual(third_best_score, 20 + 20 - 2.4 * 2)
         self.assertEqual(third_best_team.money_in_bank, 0)
         self.assertEqual(third_best_team.free_transfers, 1)
 
         second_best_score, second_best_team = heapq.heappop(top_three)
-        self.assertEqual(second_best_score, 20 + 20 + 4 - 3.2*2)
+        self.assertEqual(second_best_score, 20 + 20 + 4 - 3.2 * 2)
         self.assertEqual(
             second_best_team.money_in_bank,
             5,
@@ -745,7 +780,7 @@ class TestOptimizerOptimizeTeam(unittest.TestCase):
         )
 
         first_best_score, first_best_team = heapq.heappop(top_three)
-        self.assertEqual(first_best_score, 20 + 20 + 4 - 3.2*2)
+        self.assertEqual(first_best_score, 20 + 20 + 4 - 3.2 * 2)
         self.assertEqual(
             first_best_team.money_in_bank,
             10,
@@ -770,7 +805,7 @@ class TestOptimizerOptimizeTeam(unittest.TestCase):
                 else:
                     return 0
 
-        top_three = Optimizer.optimize_team(
+        top_three = Optimizer.calc_optimal_teams(
             team,
             candidates,
             epc=MockCalculator,
@@ -819,7 +854,7 @@ class TestOptimizerOptimizeTeam(unittest.TestCase):
                 else:
                     return 0
 
-        top_three_one_max_transfers = Optimizer.optimize_team(
+        top_three_one_max_transfers = Optimizer.calc_optimal_teams(
             team,
             candidates,
             epc=MockCalculator,
@@ -829,7 +864,7 @@ class TestOptimizerOptimizeTeam(unittest.TestCase):
             wildcard=False,
         )
 
-        top_three_two_max_transfers = Optimizer.optimize_team(
+        top_three_two_max_transfers = Optimizer.calc_optimal_teams(
             team,
             candidates,
             epc=MockCalculator,

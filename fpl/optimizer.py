@@ -1,12 +1,12 @@
 """
 This module defines the Optimizer class, which provides methods to optimize FPL teams.
-The Optimizer class includes methods to calculate the optimal formation, discounted reward, and top three optimized teams.
+The Optimizer class includes methods to calculate optimal formations, discounted rewards, and optimized teams.
 
 Available functions:
-- optimal_formation: Return the optimal formation of an FPL team for a particular gameweek.
-- discounted_reward_player: Calculate the discounted reward you can expect from a player over a particular horizon.
-- discounted_reward: Calculate the discounted reward you can expect from your team over a particular horizon.
-- optimize_team: Find the top three optimized teams based on the given parameters.
+- calc_optimal_formation: Return the optimal formation of an FPL team for a particular gameweek.
+- calc_discounted_reward_player: Calculate the discounted reward you can expect from a player over a particular horizon.
+- calc_discounted_reward_team: Calculate the discounted reward you can expect from your team over a particular horizon.
+- calc_optimal_teams: Find the top three optimized teams based on the given parameters.
 """
 
 from fpl import Player, Team, ExpectedPointsCalculator, Loader
@@ -14,10 +14,10 @@ import heapq
 
 
 class Optimizer:
-    """Static class providing methods to optimize an FPL team.
-    """
+    """Static class providing methods to optimize an FPL team."""
+
     @staticmethod
-    def optimal_formation(
+    def calc_optimal_formation(
         team: Team, epc: ExpectedPointsCalculator, gameweek: int
     ) -> dict[str, any]:
         """Return the optimal formation of an FPL team for a particular gameweek.
@@ -134,30 +134,38 @@ class Optimizer:
             "captain": captain,
             "total_exp_points": total_exp_points,
         }
-    
+
     @staticmethod
-    def discounted_reward_player(player: Player, epc: ExpectedPointsCalculator, gameweek: int, horizon: int, gamma: float = 1):
+    def calc_discounted_reward_player(
+        player: Player,
+        epc: ExpectedPointsCalculator,
+        gameweek: int,
+        horizon: int,
+        gamma: float = 1,
+    ):
         """Calculate the discounted reward you can expect from a player over a particular horizon.
-        
+
         :param player: The player for which the reward is to be calculated.
         :param epc: Expected points calculator.
         :param gameweek: The gameweek from which to start accumulating the reward.
         :param horizon: The number of gameweeks over which to accumulate the reward.
         :param gamma: Discount factor.
-        
+
         :return: Discounted reward of a player over a partcular horizon.
         """
-        
+
         discounted_reward = 0
         discount_factor = 1
         for h in range(horizon):
-            discounted_reward += discount_factor * epc.get_expected_points(player.element, gameweek + h)
+            discounted_reward += discount_factor * epc.get_expected_points(
+                player.element, gameweek + h
+            )
             discount_factor *= gamma
-        
+
         return discounted_reward
 
     @staticmethod
-    def discounted_reward(
+    def calc_discounted_reward_team(
         team: Team,
         epc: ExpectedPointsCalculator,
         gameweek: int,
@@ -194,16 +202,18 @@ class Optimizer:
         discounted_reward = 0
         discount_factor = 1
         for h in range(horizon):
-            d = Optimizer.optimal_formation(team, epc, gameweek + h)
+            d = Optimizer.calc_optimal_formation(team, epc, gameweek + h)
             # transfer adjustment should be applied every week
             # having one less transfer this week -> on average you'll have one less next week
-            discounted_reward += discount_factor * (d["total_exp_points"] + transfer_adjustment)
+            discounted_reward += discount_factor * (
+                d["total_exp_points"] + transfer_adjustment
+            )
             discount_factor *= gamma
 
         return discounted_reward
 
     @staticmethod
-    def optimize_team(
+    def calc_optimal_teams(
         team: Team,
         candidates: list[Player],
         epc: ExpectedPointsCalculator,
@@ -225,21 +235,23 @@ class Optimizer:
         :param wildcard: Whether you are wildcarding or not.
 
         :return: List of the top three teams based on score.
-        
+
         :raises ValueError: If one of the candidates is already in the team or has an invalid position.
         """
-        
-        team_player_ids = set([p.element for p in team.gkps|team.defs|team.mids|team.fwds])
+
+        team_player_ids = set(
+            [p.element for p in team.gkps | team.defs | team.mids | team.fwds]
+        )
         valid_positions = set([1, 2, 3, 4])
         for candidate in candidates:
             if candidate.element in team_player_ids:
                 raise ValueError("Candidate already in team.")
             if candidate.position not in valid_positions:
                 raise ValueError("Invalid player position.")
-        
+
         top_three = [
             (
-                Optimizer.discounted_reward(
+                Optimizer.calc_discounted_reward_team(
                     team, epc, gameweek, horizon, gamma, wildcard
                 ),
                 team,
@@ -265,7 +277,7 @@ class Optimizer:
                     if candidate not in out_players:
                         for out_player in out_players:
                             v_team = u_team.transfer_player(out_player, candidate)
-                            v_score = Optimizer.discounted_reward(
+                            v_score = Optimizer.calc_discounted_reward_team(
                                 v_team, epc, gameweek, horizon, gamma, wildcard
                             )
                             if v_team.is_feasible and (v_team not in heap_set):
