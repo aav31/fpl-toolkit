@@ -153,9 +153,9 @@ class TestOptimizerCalcOptimalFormation(unittest.TestCase):
 
         result = Optimizer.calc_optimal_formation(team, MockCalculator, 0)
         # check formation is 442 as expected
-        self.assertEqual(result["gkps"], {self.player_map[1]})
+        self.assertEqual(result.gkps, {self.player_map[1]})
         self.assertEqual(
-            result["defs"],
+            result.defs,
             {
                 self.player_map[3],
                 self.player_map[4],
@@ -164,7 +164,7 @@ class TestOptimizerCalcOptimalFormation(unittest.TestCase):
             },
         )
         self.assertEqual(
-            result["mids"],
+            result.mids,
             {
                 self.player_map[8],
                 self.player_map[9],
@@ -172,8 +172,8 @@ class TestOptimizerCalcOptimalFormation(unittest.TestCase):
                 self.player_map[11],
             },
         )
-        self.assertEqual(result["fwds"], {self.player_map[13], self.player_map[14]})
-        self.assertAlmostEqual(result["total_exp_points"], 60)
+        self.assertEqual(result.fwds, {self.player_map[13], self.player_map[14]})
+        self.assertAlmostEqual(result.total_exp_points, 60)
 
     def test_calc_optimal_formation_B_343(self):
         class MockCalculator(ExpectedPointsCalculator):
@@ -182,12 +182,12 @@ class TestOptimizerCalcOptimalFormation(unittest.TestCase):
 
         result = Optimizer.calc_optimal_formation(team, MockCalculator, 0)
         # check formation is 343 as expected
-        self.assertEqual(result["gkps"], {self.player_map[2]})
+        self.assertEqual(result.gkps, {self.player_map[2]})
         self.assertEqual(
-            result["defs"], {self.player_map[5], self.player_map[6], self.player_map[7]}
+            result.defs, {self.player_map[5], self.player_map[6], self.player_map[7]}
         )
         self.assertEqual(
-            result["mids"],
+            result.mids,
             {
                 self.player_map[9],
                 self.player_map[10],
@@ -196,10 +196,10 @@ class TestOptimizerCalcOptimalFormation(unittest.TestCase):
             },
         )
         self.assertEqual(
-            result["fwds"],
+            result.fwds,
             {self.player_map[13], self.player_map[14], self.player_map[15]},
         )
-        self.assertAlmostEqual(result["total_exp_points"], 119)
+        self.assertAlmostEqual(result.total_exp_points, 119)
 
     def test_calc_optimal_formation_C_541(self):
         class MockCalculator(ExpectedPointsCalculator):
@@ -208,9 +208,9 @@ class TestOptimizerCalcOptimalFormation(unittest.TestCase):
 
         result = Optimizer.calc_optimal_formation(team, MockCalculator, 0)
         # check formation is 541 as expected
-        self.assertEqual(result["gkps"], {self.player_map[1]})
+        self.assertEqual(result.gkps, {self.player_map[1]})
         self.assertEqual(
-            result["defs"],
+            result.defs,
             {
                 self.player_map[3],
                 self.player_map[4],
@@ -220,7 +220,7 @@ class TestOptimizerCalcOptimalFormation(unittest.TestCase):
             },
         )
         self.assertEqual(
-            result["mids"],
+            result.mids,
             {
                 self.player_map[8],
                 self.player_map[9],
@@ -228,8 +228,8 @@ class TestOptimizerCalcOptimalFormation(unittest.TestCase):
                 self.player_map[11],
             },
         )
-        self.assertEqual(result["fwds"], {self.player_map[13]})
-        self.assertAlmostEqual(result["total_exp_points"], 114)
+        self.assertEqual(result.fwds, {self.player_map[13]})
+        self.assertAlmostEqual(result.total_exp_points, 114)
 
     def test_calc_optimal_formation_D_523(self):
         class MockCalculator(ExpectedPointsCalculator):
@@ -238,9 +238,9 @@ class TestOptimizerCalcOptimalFormation(unittest.TestCase):
 
         result = Optimizer.calc_optimal_formation(team, MockCalculator, 0)
         # check formation is 523 as expected
-        self.assertEqual(result["gkps"], {self.player_map[2]})
+        self.assertEqual(result.gkps, {self.player_map[2]})
         self.assertEqual(
-            result["defs"],
+            result.defs,
             {
                 self.player_map[3],
                 self.player_map[4],
@@ -249,12 +249,12 @@ class TestOptimizerCalcOptimalFormation(unittest.TestCase):
                 self.player_map[7],
             },
         )
-        self.assertEqual(result["mids"], {self.player_map[11], self.player_map[12]})
+        self.assertEqual(result.mids, {self.player_map[11], self.player_map[12]})
         self.assertEqual(
-            result["fwds"],
+            result.fwds,
             {self.player_map[13], self.player_map[14], self.player_map[15]},
         )
-        self.assertAlmostEqual(result["total_exp_points"], 21)
+        self.assertAlmostEqual(result.total_exp_points, 21)
 
     def test_captain_functionality(self):
         class MockCalculator(ExpectedPointsCalculator):
@@ -267,10 +267,10 @@ class TestOptimizerCalcOptimalFormation(unittest.TestCase):
 
         # Check if captain's points are doubled
         self.assertEqual(
-            result["gkps"], {self.player_map[1]}, "Goalkeeper 1 is the captain"
+            result.gkps, {self.player_map[1]}, "Goalkeeper 1 is the captain"
         )
         self.assertAlmostEqual(
-            result["total_exp_points"], 20.0, "Check captain's points are doubled"
+            result.total_exp_points, 20.0, "Check captain's points are doubled"
         )
 
 

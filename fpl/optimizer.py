@@ -9,7 +9,7 @@ Available functions:
 - calc_optimal_teams: Find the top three optimized teams based on the given parameters.
 """
 
-from fpl import Player, Team, ExpectedPointsCalculator, Loader
+from fpl import Player, Team, Formation, ExpectedPointsCalculator, Loader
 import heapq
 
 
@@ -19,14 +19,14 @@ class Optimizer:
     @staticmethod
     def calc_optimal_formation(
         team: Team, epc: ExpectedPointsCalculator, gameweek: int
-    ) -> dict[str, any]:
+    ) -> Formation:
         """Return the optimal formation of an FPL team for a particular gameweek.
 
         :param team: The team for which the optimal formation is to be calculated.
         :param epc: Expected points calculator.
         :param gameweek: The gameweek for which the optimal formation is to be calculated.
 
-        :return: Dictionary containing gkps, defs, mids, fwds, captain, expected points.
+        :return: Optimal Formation object containing gkps, defs, mids, fwds, captain, expected points.
         """
 
         def pop_n_elements(lst, n):
@@ -126,14 +126,16 @@ class Optimizer:
         # need to double the captain's points
         total_exp_points += max_exp_points
 
-        return {
-            "gkps": frozenset(x[0] for x in gkps),
-            "defs": frozenset(x[0] for x in defs),
-            "mids": frozenset(x[0] for x in mids),
-            "fwds": frozenset(x[0] for x in fwds),
-            "captain": captain,
-            "total_exp_points": total_exp_points,
-        }
+        formation = Formation(
+            total_exp_points=total_exp_points,
+            gkps=frozenset(x[0] for x in gkps),
+            defs=frozenset(x[0] for x in defs),
+            mids=frozenset(x[0] for x in mids),
+            fwds=frozenset(x[0] for x in fwds),
+            captain=captain,
+        )
+
+        return formation
 
     @staticmethod
     def calc_discounted_reward_player(
@@ -202,11 +204,11 @@ class Optimizer:
         discounted_reward = 0
         discount_factor = 1
         for h in range(horizon):
-            d = Optimizer.calc_optimal_formation(team, epc, gameweek + h)
+            formation = Optimizer.calc_optimal_formation(team, epc, gameweek + h)
             # transfer adjustment should be applied every week
             # having one less transfer this week -> on average you'll have one less next week
             discounted_reward += discount_factor * (
-                d["total_exp_points"] + transfer_adjustment
+                formation.total_exp_points + transfer_adjustment
             )
             discount_factor *= gamma
 
