@@ -1,4 +1,4 @@
-from unittest import TestCase
+from unittest import TestCase, skip
 from unittest.mock import patch
 from dataclasses import FrozenInstanceError
 from fpl import Player, Formation
@@ -109,3 +109,7 @@ class TestFormation(TestCase):
             FrozenInstanceError, msg="Can't change fields of frozen instance"
         ):
             formation.total_exp_points = 200
+
+    @skip("TODO: Implement this test")
+    def test_str(self):
+        pass

@@ -5,6 +5,7 @@ It also provides post initialization checking to see that the team is indeed the
 
 Available functions:
 - __post_init__: Validates the the formation after initialization.
+- __str__: Return a string representation of the formation.
 """
 
 from dataclasses import dataclass
@@ -80,3 +81,36 @@ class Formation:
             raise ValueError(
                 f"Total number of forwards ({len(self.fwds)}) is out of range ({min_play_fwds}-{max_play_fwds})"
             )
+
+    def __str__(self):
+        """Return a string representation of the formation.
+
+        :return: A string representation of the formation, including players in each position, money in bank, and free transfers.
+        """
+        result = ""
+        position_delimiter = "-" * 75 + "\n"
+
+        result += position_delimiter
+        result += "{GKPS}\n"
+        for player in sorted(list(self.gkps)):
+            result += "{}\n".format(player)
+
+        result += position_delimiter
+        result += "{DEFS}\n"
+        for player in sorted(list(self.defs)):
+            result += "{}\n".format(player)
+
+        result += position_delimiter
+        result += "{MIDS}\n"
+        for player in sorted(list(self.mids)):
+            result += "{}\n".format(player)
+
+        result += position_delimiter
+        result += "{FWDS}\n"
+        for player in sorted(list(self.fwds)):
+            result += "{}\n".format(player)
+
+        result += position_delimiter
+        result += "TOTAL EXPECTED POINTS: {}\n".format(self.total_exp_points)
+        result += "CAPTAIN: {}".format(self.captain)
+        return result
