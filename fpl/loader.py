@@ -17,7 +17,6 @@ Available functions:
 - get_player_historical_info_for_gameweek: Return a player's information for a particular gameweek where the information is known.
 - get_player_future_info_for_gameweek: Return a player's information for a particular gameweek where the information is unknown.
 - get_position_info: Get the information regarding a particular position.
-- find_matching_players: Search for players whose web names partially match the search_name using fuzzy matching.
 """
 
 import requests
@@ -27,8 +26,6 @@ from functools import lru_cache
 import warnings
 import json
 import time
-from fuzzywuzzy import fuzz
-from fuzzywuzzy import process
 from fpl.team import Team
 from fpl.player import Player
 
@@ -414,44 +411,3 @@ class Loader:
                 return position
 
         raise KeyError("Position id {} not found in map".format(position_id))
-
-    @staticmethod
-    def find_matching_players(
-        search_name: str, threshold: int = 80
-    ) -> List[Tuple[Player, str]]:
-        """Search for players whose web names partially match the search_name using fuzzy matching.
-
-        :param search_name: The name to search for.
-        :param threshold: The minimum score for a match to be considered valid (default is 80).
-
-        :return: A list of tuples, each containing a Player object and the full name as a string.
-
-        :raises ValueError: If no matching players are found.
-        """
-        elements = Loader.get_static_info()["elements"]
-        web_names = [p["web_name"] for p in elements]
-        matches = process.extract(search_name, web_names, scorer=fuzz.partial_ratio)
-        filtered_matches = [match for match in matches if match[1] >= threshold]
-        matched_ids = [
-            p["id"]
-            for p in elements
-            if p["web_name"] in [match[0] for match in filtered_matches]
-        ]
-
-        if not matched_ids:
-            raise ValueError("No matching players found.")
-
-        players = []
-        for i in matched_ids:
-            basic_info = Loader.get_player_basic_info(i)
-            player = Player(
-                element=i,
-                name=basic_info["web_name"],
-                position=basic_info["element_type"],
-                club=basic_info["team"],
-                cost=basic_info["now_cost"],
-            )
-            full_name = f"{basic_info['first_name']} {basic_info['second_name']}"
-            players.append((player, full_name))
-
-        return players

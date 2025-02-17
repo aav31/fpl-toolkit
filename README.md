@@ -42,7 +42,7 @@ The `fpl` package contains the following modules:
 - [`optimizer.py`](./fpl/optimizer.py)
 - [`player.py`](./fpl/player.py)
 - [`team.py`](./fpl/team.py)
-
+- [`utils.py`](./fpl/utils.py)
 
 ## License
 
@@ -52,11 +52,7 @@ This project is licensed under the MIT License. See the [LICENSE](LICENSE) file 
 
 
 ## Tests
-Run all unit tests:
+Run all unit and integration tests:
 ```bash
 python -m unittest discover -v
-```
-Run a specific unit test:
-```bash
-python -m unittest tests.test_optimizer.TestOptimizer.test_optimize_team
 ```
