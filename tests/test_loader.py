@@ -55,7 +55,6 @@ class TestLoader(unittest.TestCase):
         self.assertEqual(len(my_team.defs), 5)
         self.assertEqual(len(my_team.mids), 5)
         self.assertEqual(len(my_team.fwds), 3)
-        pass
 
     @unittest.skip("TODO: Implement this test")
     def test_get_next_gameweek(self):

@@ -1,11 +1,18 @@
+"""
+Integration tests for the fpl package.
+Test cases:
+- TestLoaderIntegration: Tests to check expected responses from the FPL API.
+- TestUtilsIntegration: Tests to check our manual calculations are consistent with the official FPL game.
+"""
+
 import unittest
-from fpl import Loader, Team, Player
 from unittest.mock import patch
+from fpl import Loader, Team, Player, compute_points_per_game, compute_form
+
 
 class TestLoaderIntegration(unittest.TestCase):
-    """Integration tests for the loader module.
-    We want to make sure we get back what we expect from the FPL API.
-    """
+    """Tests to check expected responses from the FPL API."""
+
     def test_get_static_info(self):
         static_info = Loader.get_static_info()
         self.assertEqual(len(static_info["events"]), 38, "Should be 38 gameweeks")
@@ -79,11 +86,11 @@ class TestLoaderIntegration(unittest.TestCase):
         self.assertEqual(
             Loader.get_next_gameweek("2024-08-16 21:00:00"), 2, "After deadline"
         )
-    
+
     @unittest.skip("TODO: Implement this test")
     def test_get_my_historical_team_from_gameweek(self):
         pass
-        
+
     def test_get_player_basic_info(self):
         player_basic_info = Loader.get_player_basic_info(182)
         self.assertEqual(player_basic_info["web_name"], "Palmer")
@@ -94,16 +101,16 @@ class TestLoaderIntegration(unittest.TestCase):
         self.assertIn("fixtures", player_detailed_info)
         self.assertIn("history", player_detailed_info)
         self.assertIn("history_past", player_detailed_info)
-        
-    @unittest.skip("TODO: Implement this test again")
+
     def test_get_player_historical_info_for_gameweek(self):
-        palmer = Loader.get_player_historical_info_for_gameweek(182, 1)
-        self.assertEqual(palmer[0]["total_points"], 12, "Cole Palmer got 12 points")
-        self.assertEqual(palmer[0]["expected_goals"], "0.83", "0.83 xG")
-        burnley_player = FplLoader.get_player_historical_info_for_gameweek(178, 2)
-        self.assertEqual(len(burnley_player), 0, "Burnley blanked this gameweek")
-        burnley_player = FplLoader.get_player_historical_info_for_gameweek(178, 3)
-        self.assertEqual(len(burnley_player), 1, "Burnley did not blank this gameweek")
+        salah_id = 328
+        fixtures = Loader.get_player_historical_info_for_gameweek(salah_id, 24)
+        self.assertEqual(len(fixtures), 2, "Salah played two fixtures in gameweek 24")
+        self.assertEqual(
+            sum(fixture["total_points"] for fixture in fixtures),
+            29,
+            "Salah scored 29 points in gameweek 24",
+        )
 
     def test_get_player_future_info_for_gameweek(self):
         player_future_info = Loader.get_player_future_info_for_gameweek(182, 38)
@@ -121,7 +128,53 @@ class TestLoaderIntegration(unittest.TestCase):
         self.assertEqual(Loader.get_position_info(2)["singular_name_short"], "DEF")
         self.assertEqual(Loader.get_position_info(3)["singular_name_short"], "MID")
         self.assertEqual(Loader.get_position_info(4)["singular_name_short"], "FWD")
-    
-    @unittest.skip("TODO: Implement this test")
-    def test_find_matching_players(self):
-        pass
+
+
+class TestUtilsIntegration(unittest.TestCase):
+    """Tests to check our manual calculations are consistent with the official FPL game."""
+
+    def test_compute_points_per_game_is_correct(self):
+        """We test to see whether we are calculating points per game in the same way as the fpl website."""
+        total_number_of_players = len(Loader.get_static_info()["elements"])
+
+        for i in range(1, total_number_of_players):
+            computed_points_per_game_manual = compute_points_per_game(
+                i, Loader.get_next_gameweek()
+            )
+            computed_points_per_game_official = Loader.get_player_basic_info(i)[
+                "points_per_game"
+            ]
+            computed_points_per_game_match = (
+                abs(
+                    computed_points_per_game_manual
+                    - float(computed_points_per_game_official)
+                )
+                < 0.1
+            )
+
+            # Use assert instead of raising an exception
+            self.assertTrue(
+                computed_points_per_game_match,
+                f"Mismatch found for player ID {i}: "
+                f"manual calculation = {computed_points_per_game_manual}, "
+                f"official calculation = {computed_points_per_game_official}",
+            )
+
+    def test_compute_form_is_correct(self):
+        """We test to see whether we are calculating form in the same way as the fpl website."""
+        total_number_of_players = len(Loader.get_static_info()["elements"])
+
+        for i in range(1, total_number_of_players):
+            computed_form_manual = compute_form(i, Loader.get_next_gameweek())
+            computed_form_official = Loader.get_player_basic_info(i)["form"]
+            computed_form_match = (
+                abs(computed_form_manual - float(computed_form_official)) < 0.1
+            )
+
+            # Use assert instead of raising an exception
+            self.assertTrue(
+                computed_form_match,
+                f"Mismatch found for player ID {i}: "
+                f"manual calculation = {computed_form_manual}, "
+                f"official calculation = {computed_form_official}",
+            )
