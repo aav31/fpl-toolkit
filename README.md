@@ -8,7 +8,7 @@ Jupyter Notebook tool enabling users to research, optimize, and manage their Fan
 - ⬇️ **Download Team Info**: Download the information for your own FPL team.
 - 📈 **Optimize Team**: Optimize your own FPL team based on a customizable expected points calculator.
 
-
+![Plot](resources/plot.png)
 
 ## Installation
 
