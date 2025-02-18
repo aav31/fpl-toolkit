@@ -9,6 +9,7 @@ dependencies:
   - conda-forge::matplotlib
   - conda-forge::requests
   - conda-forge::fuzzywuzzy
+  - conda-forge::statsmodels
   - conda-forge::pip
   - pip:
     - black[jupyter]
