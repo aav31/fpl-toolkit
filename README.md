@@ -4,6 +4,8 @@ Jupyter Notebook tool enabling users to research, optimize, and manage their Fan
 
 By using this tool this season, I've miraculously managed to stumble my way from the top 500K (23/24) to the top 10K (24/25). I thought that was worth sharing! You can check out how my team is faring [here](https://fantasy.premierleague.com/entry/3247546/history)... though, I can't promise I'll stay up there for long 😄.
 
+[![Binder](https://mybinder.org/badge_logo.svg)](https://mybinder.org/v2/gh/aav31/fpl-toolkit/main?urlpath=%2Fdoc%2Ftree%2Fquickstart.ipynb) to instantly check out the tool in an interactive Jupyter Notebook.
+
 ## Features
 ![Demo GIF](./resources/demo.gif)
 
@@ -15,11 +17,7 @@ By using this tool this season, I've miraculously managed to stumble my way from
 
 
 ## Installation
-
-If you want to check out the tool instantly click on the binder link here (**TODO**) which hosts an interactive jupyter notebook for you.  
-
-Alternatively, if you want to use it locally follow
-
+If you want to use the tool locally, follow these steps:
 1. Clone the repository:
    ```bash
    git clone https://github.com/aav31/fpl-toolkit.git
