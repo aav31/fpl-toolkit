@@ -39,10 +39,10 @@ class SimpleExpectedPointsCalculator(ExpectedPointsCalculator):
     points per game, and fixture difficulty.
     """
 
-    alpha = 9.9007
-    beta_form = 0.1153
-    beta_points_per_game = 0.6032
-    beta_fixture_difficulty = -0.0078
+    alpha = 5.9697
+    beta_form = 0.1202
+    beta_points_per_game = 0.4604
+    beta_fixture_difficulty = -0.0041
 
     @staticmethod
     def get_expected_points(player_id: int, gameweek: int) -> float:
