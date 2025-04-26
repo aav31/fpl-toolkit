@@ -48,9 +48,6 @@ The `fpl` package contains the following modules:
 
 Please note, the optimizer was designed to optimize teams based purely on the expected points of each player for each gameweek; there is no attempt made to account and adjust for correlation between players. The design choice was made because a casual FPL player shouldn't need an understanding of [Modern Porfolio Theory (MPT)](https://en.wikipedia.org/wiki/Modern_portfolio_theory) to use this tool; they should be able to simply input their views on how each player should perform on an individual basis and the rest should be abstracted away. Even if you were to specify and model an entire covariance structure between all players for each gameweek, the user would still need to input a prescribed level of risk, again defeating the point of "not needing an understanding of MPT". Overall the added overhead is probably not worth; there is no point in optimization unless it can be practically used.
 
-## Documentation
-The code is currently self-documenting, with clear docstrings explaining each function and class. I plan to add more detailed documentation based on user interest and popularity.
-
 ## License
 
 This project is licensed under the MIT License. See the [LICENSE](LICENSE) file for more details.
