@@ -2,7 +2,7 @@
 
 Jupyter Notebook tool enabling users to research, optimize, and manage their Fantasy Premier League teams.
 
-By using this tool this season, I've miraculously managed to stumble my way from the top 500K (23/24) to the top 10K (24/25). I thought that was worth sharing! You can check out how my team is faring [here](https://fantasy.premierleague.com/entry/3247546/history)... though, I can't promise I'll stay up there for long 😄.
+Somehow, this tool has taken me from a mid-table mediocrity of 500K in 23/24 to a top 10K finish in 24/25. Whether that's skill or blind luck remains up for debate, but you can check out my team's history [here](https://fantasy.premierleague.com/entry/3247546/history).
 
 [![Binder](https://mybinder.org/badge_logo.svg)](https://mybinder.org/v2/gh/aav31/fpl-toolkit/main?urlpath=%2Fdoc%2Ftree%2Fquickstart.ipynb) to instantly check out the tool in an interactive Jupyter Notebook.
 
